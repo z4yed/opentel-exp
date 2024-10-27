@@ -1,0 +1,26 @@
+services:
+  media-uploader:
+    build: ./media-uploader
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./media-uploader:/app # Mount the project folder
+      - /app/node_modules # Avoid overwriting node_modules
+    command: npm run dev
+    networks:
+      - opentel
+
+  media-convert:
+    build: ./media-convert
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./media-convert:/app # Mount the project folder
+      - /app/node_modules # Avoid overwriting node_modules
+    command: npm run dev
+    networks:
+      - opentel
+
+networks:
+  opentel:
+    driver: bridge
