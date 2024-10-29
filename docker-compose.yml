@@ -4,9 +4,11 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./media-uploader:/app # Mount the project folder
-      - /app/node_modules # Avoid overwriting node_modules
+      - ./media-uploader:/app
+      - /app/node_modules
     command: npm run dev
+    depends_on:
+      - mongo
     networks:
       - opentel
 
@@ -14,13 +16,25 @@ services:
     build: ./media-convert
     ports:
       - "3002:3002"
-    volumes:
-      - ./media-convert:/app # Mount the project folder
-      - /app/node_modules # Avoid overwriting node_modules
     command: npm run dev
+    volumes:
+      - ./media-convert:/app
+      - /app/node_modules
     networks:
       - opentel
+
+  mongo:
+    image: mongo:4.4.6
+    ports:
+      - "27017:27017"
+    networks:
+      - opentel
+    volumes:
+      - mongo_data:/data/db
 
 networks:
   opentel:
     driver: bridge
+
+volumes:
+  mongo_data:
