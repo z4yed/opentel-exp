@@ -5,6 +5,8 @@ const MediaModel = require("../models/mediaModel");
 const { MEDIA_CONVERT_SERVICE_URL } = require("../constants");
 const opentelemetry = require("@opentelemetry/api");
 
+const { context, propagation } = require("@opentelemetry/api");
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const mediaUploadTracer = opentelemetry.trace.getTracer(
@@ -20,9 +22,12 @@ const renderIndex = (req, res) => {
 };
 
 const uploadFile = async (req, res) => {
+  const contextInfo = {};
+
   return mediaUploadTracer.startActiveSpan("uploadFile", async (span) => {
+    propagation.inject(context.active(), contextInfo);
+
     try {
-      span.setAttribute("raw-endpoint", "req.original");
       span.setAttribute("file.size", req.file.size);
       span.setAttribute("file.type", req.file.mimetype);
 
@@ -53,6 +58,11 @@ const uploadFile = async (req, res) => {
           {
             bucket: process.env.S3_BUCKET_NAME,
             key: file.originalname,
+          },
+          {
+            headers: {
+              ContextInfo: JSON.stringify(contextInfo),
+            },
           }
         );
 
