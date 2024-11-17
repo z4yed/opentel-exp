@@ -2,6 +2,7 @@ const express = require("express");
 var bodyParser = require("body-parser");
 const configureOpenTelemetry = require("./opentelemetry");
 const { context, propagation, trace } = require("@opentelemetry/api");
+const opentelemetry = require("@opentelemetry/api");
 
 configureOpenTelemetry("media-convert-service");
 
@@ -34,7 +35,11 @@ app.post("/convert", async (req, res) => {
 
     return res.status(200).send("Media converted successfully");
   } catch (error) {
-    console.error(error);
+    span.setStatus({
+      code: opentelemetry.SpanStatusCode.ERROR,
+      message: error.message,
+    });
+    return res.status(500).send("Media convert failed");
   } finally {
     span.end();
   }
