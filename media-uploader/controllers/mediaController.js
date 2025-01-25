@@ -12,11 +12,11 @@ const upload = multer({ storage });
 const mediaUploadTracer = opentelemetry.trace.getTracer(
   "media-uploader-tracer",
   "1.0"
-); // start a tracer
+);
 
 const renderIndex = (req, res) => {
   res.render("index", {
-    title: "Media Uploader",
+    title: "Media Suite",
     message: "Hello World! This is the media uploader service.",
   });
 };
@@ -58,6 +58,7 @@ const uploadFile = async (req, res) => {
           {
             bucket: process.env.S3_BUCKET_NAME,
             key: file.originalname,
+            mediaId: media._id,
           },
           {
             headers: {

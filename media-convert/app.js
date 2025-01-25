@@ -1,8 +1,12 @@
+const {
+  MediaConvertClient,
+  CreateJobCommand,
+} = require("@aws-sdk/client-mediaconvert");
 const express = require("express");
-var bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 const configureOpenTelemetry = require("./opentelemetry");
 const { context, propagation, trace } = require("@opentelemetry/api");
-const opentelemetry = require("@opentelemetry/api");
+require("dotenv").config();
 
 configureOpenTelemetry("media-convert-service");
 
@@ -10,41 +14,72 @@ const app = express();
 app.use(bodyParser.json());
 
 const PORT = 3002;
+const mediaconvertClient = new MediaConvertClient({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 
 const mediaConvertTracer = trace.getTracer("media-convert-tracer", "1.0");
 
 app.post("/convert", async (req, res) => {
-  console.log("headers", req.headers);
+  console.log("Headers:", req.headers);
   const previousContext = JSON.parse(req.headers.contextinfo);
   const activeContext = propagation.extract(context.active(), previousContext);
 
   let span = mediaConvertTracer.startSpan(
     "convertMedia",
-    {
-      attributes: {},
-    },
+    { attributes: {} },
     activeContext
   );
 
   trace.setSpan(context.active(), span);
 
   try {
-    for (const key in req.body) {
-      span.setAttribute(key, String(req.body[key]));
+    const { bucket, key, mediaId } = req.body;
+
+    if (!bucket || !key || !mediaId) {
+      throw new Error("Missing required parameters: bucket, key, or mediaId.");
     }
 
-    return res.status(200).send("Media converted successfully");
+    span.setAttribute("bucket", bucket);
+    span.setAttribute("key", key);
+    span.setAttribute("mediaId", mediaId);
+
+    // Load and modify the job.json file
+    const jobConfig = require("./job.json");
+
+    // Update the input file
+    jobConfig.Settings.Inputs[0].FileInput = `s3://${bucket}/${key}`;
+
+    // Update HLS output destination
+    jobConfig.Settings.OutputGroups[0].OutputGroupSettings.HlsGroupSettings.Destination = `s3://${bucket}/${mediaId}/HLS`;
+
+    // Update thumbnail output destination
+    jobConfig.Settings.OutputGroups[1].OutputGroupSettings.FileGroupSettings.Destination = `s3://${bucket}/${mediaId}/Thumbnails`;
+
+    // Create the MediaConvert job
+    const command = new CreateJobCommand(jobConfig);
+    const response = await mediaconvertClient.send(command);
+
+    console.log("MediaConvert Job Response:", response);
+    span.setAttribute("MediaConvertJobId", response.Job.Id);
+
+    res.status(200).send("Media conversion job submitted successfully.");
   } catch (error) {
     span.setStatus({
-      code: opentelemetry.SpanStatusCode.ERROR,
+      code: 2, // ERROR
       message: error.message,
     });
-    return res.status(500).send("Media convert failed");
+    console.error("Error submitting MediaConvert job:", error);
+    res.status(500).send(`Media conversion failed: ${error.message}`);
   } finally {
     span.end();
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Mediaconvert is running on port ${PORT}`);
+  console.log(`Media Convert Service running on port ${PORT}`);
 });
