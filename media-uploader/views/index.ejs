@@ -13,25 +13,7 @@
   </head>
   <body>
     <div class="mx-auto w-4/5 p-12">
-      <h1>Upload Your Files</h1>
-
-      <!-- File Input -->
-      <input type="file" class="filepond mt-6" name="file" multiple />
+      <h2>Upload and Process your files.</h2>
     </div>
-
-    <!-- FilePond JS -->
-    <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
-    <script>
-      const inputElement = document.querySelector('input[type="file"]');
-      const pond = FilePond.create(inputElement, {
-        credits: false,
-        server: {
-          url: "/upload",
-          revert: (uniqueFileId, load, error) => {
-            load();
-          },
-        },
-      });
-    </script>
   </body>
 </html>

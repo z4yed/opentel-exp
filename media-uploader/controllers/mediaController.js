@@ -21,6 +21,12 @@ const renderIndex = (req, res) => {
   });
 };
 
+const renderUploader = (req, res) => {
+  res.render("uploader", {
+    title: "Media Suite - Uploader",
+  });
+};
+
 const processFile = async (req, res) => {
   const contextInfo = {};
 
@@ -126,6 +132,7 @@ const processFile = async (req, res) => {
 
 module.exports = {
   renderIndex,
+  renderUploader,
   processFile,
   upload,
 };
