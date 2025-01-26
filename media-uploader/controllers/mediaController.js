@@ -9,6 +9,7 @@ const { context, propagation } = require("@opentelemetry/api");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
 const mediaUploadTracer = opentelemetry.trace.getTracer(
   "media-uploader-tracer",
   "1.0"
@@ -17,14 +18,13 @@ const mediaUploadTracer = opentelemetry.trace.getTracer(
 const renderIndex = (req, res) => {
   res.render("index", {
     title: "Media Suite",
-    message: "Hello World! This is the media uploader service.",
   });
 };
 
-const uploadFile = async (req, res) => {
+const processFile = async (req, res) => {
   const contextInfo = {};
 
-  return mediaUploadTracer.startActiveSpan("uploadFile", async (span) => {
+  return mediaUploadTracer.startActiveSpan("process-file", async (span) => {
     propagation.inject(context.active(), contextInfo);
 
     try {
@@ -33,9 +33,11 @@ const uploadFile = async (req, res) => {
 
       const file = req.file;
       const s3 = new S3Client({ region: process.env.AWS_REGION });
+      const fileUniqueName = Math.random().toString(36).slice(2, 18) + ".mp4";
+
       const input = {
         Bucket: process.env.S3_BUCKET_NAME,
-        Key: file.originalname,
+        Key: fileUniqueName,
         Body: file.buffer,
         ContentType: file.mimetype,
       };
@@ -46,8 +48,7 @@ const uploadFile = async (req, res) => {
       if (response.$metadata.httpStatusCode === 200) {
         const media = new MediaModel({
           filename: file.originalname,
-          filepath: `${process.env.CLOUDFRONT_URL}/${file.originalname}`,
-          mimetype: file.mimetype,
+          filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
         });
 
         await media.save();
@@ -57,7 +58,7 @@ const uploadFile = async (req, res) => {
           `${MEDIA_CONVERT_SERVICE_URL}/convert`,
           {
             bucket: process.env.S3_BUCKET_NAME,
-            key: file.originalname,
+            key: fileUniqueName,
             mediaId: media._id,
           },
           {
@@ -67,7 +68,46 @@ const uploadFile = async (req, res) => {
           }
         );
 
-        console.log("Media convert response: ", convertResponse.data);
+        console.log("=================");
+        console.log("Final Response: ", convertResponse.data);
+        console.log("=================");
+
+        span.setAttribute(
+          "mediaConvertJobId",
+          convertResponse.data.mediaConvertJobId
+        );
+        span.setAttribute(
+          "mediaConvertJobStatus",
+          convertResponse.data.mediaConvertJobStatus
+        );
+        span.setAttribute(
+          "hlsPlaylistUrl",
+          convertResponse.data.hlsPlaylistUrl
+        );
+        span.setAttribute("thumbnailUrl", convertResponse.data.thumbnailUrl);
+        span.setAttribute("mediaId", convertResponse.data.mediaId);
+        span.setAttribute(
+          "subtitleGenerationStatus",
+          convertResponse.data.subtitleGenerationStatus
+        );
+        span.setAttribute(
+          "subtitleLanguageCode",
+          convertResponse.data.subtitleLanguageCode
+        );
+        span.setAttribute(
+          "subtitleFileUrl",
+          convertResponse.data.subtitleFileUrl
+        );
+
+        await MediaModel.findByIdAndUpdate(media._id, {
+          mediaConvertJobId: convertResponse.data.mediaConvertJobId,
+          mediaConvertStatus: convertResponse.data.mediaConvertJobStatus,
+          streamingUrl: convertResponse.data.hlsPlaylistUrl,
+          thumbnailUrl: convertResponse.data.thumbnailUrl,
+          subtitleUrl: convertResponse.data.subtitleFileUrl,
+          subtitleLanguageCode: convertResponse.data.subtitleLanguageCode,
+          subtitleStatus: convertResponse.data.subtitleGenerationStatus,
+        });
       }
 
       res.status(200).send("File uploaded And processed.");
@@ -86,6 +126,6 @@ const uploadFile = async (req, res) => {
 
 module.exports = {
   renderIndex,
-  uploadFile,
+  processFile,
   upload,
 };

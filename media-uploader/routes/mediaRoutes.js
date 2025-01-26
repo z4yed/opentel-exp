@@ -6,7 +6,7 @@ router.get("/", mediaController.renderIndex);
 router.post(
   "/upload",
   mediaController.upload.single("file"),
-  mediaController.uploadFile
+  mediaController.processFile
 );
 
 module.exports = router;

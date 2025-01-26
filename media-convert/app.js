@@ -18,6 +18,7 @@ const app = express();
 app.use(bodyParser.json());
 
 const PORT = 3002;
+
 const mediaconvertClient = new MediaConvertClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -27,6 +28,10 @@ const mediaconvertClient = new MediaConvertClient({
 });
 
 const mediaConvertTracer = trace.getTracer("media-convert-tracer", "1.0");
+
+app.get("/", (req, res) => {
+  res.send("Media Convert Service is running.");
+});
 
 app.post("/convert", async (req, res) => {
   console.log("Headers:", req.headers);
@@ -40,6 +45,8 @@ app.post("/convert", async (req, res) => {
   );
 
   trace.setSpan(context.active(), span);
+
+  const payload = {};
 
   try {
     const { bucket, key, mediaId } = req.body;
@@ -74,15 +81,24 @@ app.post("/convert", async (req, res) => {
     const response = await mediaconvertClient.send(command);
 
     const jobId = response.Job.Id;
-
-    console.log("MediaConvert Job Response:", response);
     span.setAttribute("MediaConvertJobId", jobId);
 
     // check the status of the job every 2 seconds
-    const status = await checkJobStatusEvery2Seconds(jobId);
+    const jobDetails = await checkJobStatusEvery2Seconds(jobId);
+
+    payload.mediaConvertJobId = jobId;
+    payload.mediaConvertJobStatus = jobDetails.status;
 
     // if status is complete, trigger subtitle generation
-    if (status === "COMPLETE") {
+    if (jobDetails.status === "COMPLETE") {
+      payload.hlsPlaylistUrl = `${
+        process.env.CLOUDFRONT_URL
+      }/${mediaId}/HLS/${key.replace(".mp4", "")}.m3u8`;
+      payload.thumbnailUrl = `${
+        process.env.CLOUDFRONT_URL
+      }/${mediaId}/Thumbnails/${key.replace(".mp4", "")}.0000001.jpg`;
+
+      // call the subtitle generation service
       const subtitleGenerationResponse = await axios.post(
         `${SUBTITLE_GENERATE_SERVICE_ENDPOINT}/generate-subtitle`,
         {
@@ -97,21 +113,28 @@ app.post("/convert", async (req, res) => {
         }
       );
 
-      console.log(
-        "Subtitle generation response: ",
-        subtitleGenerationResponse.data
-      );
+      payload.mediaId = mediaId;
+      payload.subtitleGenerationStatus = subtitleGenerationResponse.data.status;
+      payload.subtitleLanguageCode =
+        subtitleGenerationResponse.data.languageCode;
+      payload.subtitleFileUrl = `${process.env.CLOUDFRONT_URL}${subtitleGenerationResponse.data.fileUrl}`;
+    } else {
+      payload.subtitleErrorMessage = jobDetails.errorMessage;
     }
 
-    // return JSON response with job status
-    res.json({ jobId, status });
+    // return payload as JSON response
+    res.json({ ...payload });
   } catch (error) {
     span.setStatus({
       code: 2, // ERROR
       message: error.message,
     });
+    payload.mediaConvertErrorMessage = error.message;
+
     console.error("Error submitting MediaConvert job:", error);
-    res.status(500).send(`Media conversion failed: ${error.message}`);
+    res
+      .status(500)
+      .send(`An error occurred at media-convert service: ${error.message}`);
   } finally {
     span.end();
   }
@@ -128,22 +151,27 @@ async function checkJobStatusEvery2Seconds(jobId) {
         const command = new GetJobCommand({ Id: jobId });
         const response = await mediaconvertClient.send(command);
 
-        console.log("MediaConvert Job Status:", response.Job.Status);
+        console.log("MediaConvert Job Status: ", response.Job.Status);
 
         if (response.Job.Status === "COMPLETE") {
-          console.log("Media conversion job completed successfully.");
+          console.log("Media conversion job completed.");
           clearInterval(interval);
-          resolve("COMPLETE");
+          resolve({
+            status: "COMPLETE",
+          });
         } else if (response.Job.Status === "ERROR") {
           console.error(
-            "Media conversion job failed:",
+            "Media conversion job failed: ",
             response.Job.ErrorMessage
           );
           clearInterval(interval);
-          resolve("ERROR");
+          resolve({
+            status: "ERROR",
+            errorMessage: response.Job?.ErrorMessage,
+          });
         }
       } catch (error) {
-        console.error("Error checking job status:", error);
+        console.error("Error checking job status: ", error);
         clearInterval(interval);
         reject(error);
       }

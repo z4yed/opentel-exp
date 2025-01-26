@@ -1,6 +1,7 @@
 const {
   TranscribeClient,
   StartTranscriptionJobCommand,
+  GetTranscriptionJobCommand,
 } = require("@aws-sdk/client-transcribe");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -19,6 +20,10 @@ const subtitleGeneratorTracer = trace.getTracer(
   "subtitle-generator-tracer",
   "1.0"
 );
+
+app.get("/", (req, res) => {
+  res.send("Subtitle Generator Service is running.");
+});
 
 app.post("/generate-subtitle", async (req, res) => {
   console.log("Headers:", req.headers);
@@ -44,12 +49,25 @@ app.post("/generate-subtitle", async (req, res) => {
     span.setAttribute("key", key);
     span.setAttribute("mediaId", mediaId);
 
-    // trigger AWS Transcribe job
+    const transcriptionJobResponse = await startTranscriptionJob(
+      bucket,
+      key,
+      mediaId
+    );
 
-    const transcriptionJob = startTranscriptionJob(bucket, key, mediaId);
-    console.log("Transcription Job Response:", transcriptionJob);
+    const transcriptionJobName =
+      transcriptionJobResponse.TranscriptionJob.TranscriptionJobName;
+    const jobStatusAndLanguageCode = await checkJobStatusEverySecond(
+      transcriptionJobName
+    );
 
-    res.json({ service: "subtitle-generator", status: "success" });
+    res.json({
+      service: "subtitle-generator",
+      mediaId,
+      status: jobStatusAndLanguageCode.status,
+      languageCode: jobStatusAndLanguageCode.languageCode,
+      fileUrl: jobStatusAndLanguageCode.fileUrl,
+    });
   } catch (error) {
     span.setStatus({
       code: 2, // ERROR
@@ -67,33 +85,59 @@ app.listen(PORT, () => {
   console.log(`Subtitle generator Service running on port ${PORT}`);
 });
 
-async function checkJobStatusEvery2Seconds(jobId) {
+async function checkJobStatusEverySecond(jobName) {
   return new Promise((resolve, reject) => {
     let interval = setInterval(async () => {
+      const client = new TranscribeClient({
+        region: process.env.AWS_REGION,
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
       try {
-        const command = new GetJobCommand({ Id: jobId });
-        const response = await mediaconvertClient.send(command);
+        const command = new GetTranscriptionJobCommand({
+          TranscriptionJobName: jobName,
+        });
 
-        console.log("MediaConvert Job Status:", response.Job.Status);
+        const response = await client.send(command);
+        const jobStatus = response.TranscriptionJob.TranscriptionJobStatus;
+        console.log("Transcribe Job Status:", jobStatus);
 
-        if (response.Job.Status === "COMPLETE") {
-          console.log("Media conversion job completed successfully.");
+        // "QUEUED" || "IN_PROGRESS" || "FAILED" || "COMPLETED",
+        if (jobStatus === "COMPLETED") {
+          console.log("Transcription job completed successfully.");
           clearInterval(interval);
-          resolve("COMPLETE");
-        } else if (response.Job.Status === "ERROR") {
+
+          const fileUrl =
+            response.TranscriptionJob?.Subtitles?.SubtitleFileUris[0];
+
+          // split by bucket name and get relative path
+          const relativePath = fileUrl.split(process.env.AWS_BUCKET_NAME)[1];
+          resolve({
+            status: "COMPLETED",
+            languageCode: response.TranscriptionJob.LanguageCode,
+            fileUrl: relativePath,
+          });
+        } else if (jobStatus === "FAILED") {
           console.error(
-            "Media conversion job failed:",
-            response.Job.ErrorMessage
+            "Transcription job failed:",
+            response.TranscriptionJob.FailureReason
           );
           clearInterval(interval);
-          resolve("ERROR");
+          resolve({
+            status: "FAILED",
+            languageCode: null,
+            fileUrl: null,
+          });
         }
       } catch (error) {
         console.error("Error checking job status:", error);
         clearInterval(interval);
         reject(error);
       }
-    }, 2000);
+    }, 1000);
   });
 }
 
@@ -102,7 +146,7 @@ async function startTranscriptionJob(bucket, key, mediaId) {
   const OUTPUT_BUCKET = bucket;
 
   const transcribeClient = new TranscribeClient({
-    region: process.env.AWS_REGION,
+    region: REGION,
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -113,7 +157,10 @@ async function startTranscriptionJob(bucket, key, mediaId) {
     const objectKey = key;
     const fileUri = `s3://${bucket}/${objectKey}`;
 
-    const outputKey = `${mediaId}/Captions/${objectKey}-caption.json`;
+    const outputKey = `${mediaId}/Captions/${objectKey.replace(
+      ".mp4",
+      ""
+    )}-caption.json`;
     const jobName = `${mediaId}-transcription-job`;
 
     const params = {
@@ -146,15 +193,7 @@ async function startTranscriptionJob(bucket, key, mediaId) {
     const transcribeJobResponse = await transcribeClient.send(
       new StartTranscriptionJobCommand(params)
     );
-
-    console.log(
-      "Transcribe Job Response: " + JSON.stringify(transcribeJobResponse)
-    );
-
-    return {
-      responseCode: 200,
-      body: `Successfully started transcription job.`,
-    };
+    return transcribeJobResponse;
   } catch (err) {
     console.log("Error triggering transcription job: " + err.message);
     return {
