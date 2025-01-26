@@ -23,6 +23,17 @@ services:
     networks:
       - opentel
 
+  generate-subtitle:
+    build: ./generate-subtitle
+    ports:
+      - "3003:3003"
+    command: npm run dev
+    volumes:
+      - ./generate-subtitle:/app
+      - /app/node_modules
+    networks:
+      - opentel
+
   mongo:
     image: mongo:4.4.6
     ports:
