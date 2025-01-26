@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://unpkg.com/filepond/dist/filepond.min.css"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <title><%= title %></title>
-  </head>
+  <%- include('partials/head.ejs') %>
   <body>
-    <div class="mx-auto w-4/5 p-12">
+    <%- include('partials/navigation.ejs') %>
+
+    <main class="mx-auto w-4/5 p-12">
       <h1>Upload Your Files</h1>
 
       <!-- File Input -->
       <input type="file" class="filepond mt-6" name="file" multiple />
-    </div>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
 
     <!-- FilePond JS -->
     <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
