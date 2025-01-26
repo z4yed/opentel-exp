@@ -67,10 +67,10 @@ const uploadFile = async (req, res) => {
           }
         );
 
-        console.log("Media converted", convertResponse.data);
+        console.log("Media convert response: ", convertResponse.data);
       }
 
-      res.status(200).send("File uploaded to S3");
+      res.status(200).send("File uploaded And processed.");
     } catch (error) {
       console.error(error);
       span.setStatus({

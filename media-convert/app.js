@@ -1,12 +1,16 @@
+const axios = require("axios");
 const {
   MediaConvertClient,
   CreateJobCommand,
+  GetJobCommand,
 } = require("@aws-sdk/client-mediaconvert");
 const express = require("express");
 const bodyParser = require("body-parser");
 const configureOpenTelemetry = require("./opentelemetry");
 const { context, propagation, trace } = require("@opentelemetry/api");
 require("dotenv").config();
+
+const { SUBTITLE_GENERATE_SERVICE_ENDPOINT } = require("./constants");
 
 configureOpenTelemetry("media-convert-service");
 
@@ -69,10 +73,38 @@ app.post("/convert", async (req, res) => {
     const command = new CreateJobCommand(jobConfig);
     const response = await mediaconvertClient.send(command);
 
-    console.log("MediaConvert Job Response:", response);
-    span.setAttribute("MediaConvertJobId", response.Job.Id);
+    const jobId = response.Job.Id;
 
-    res.status(200).send("Media conversion job submitted successfully.");
+    console.log("MediaConvert Job Response:", response);
+    span.setAttribute("MediaConvertJobId", jobId);
+
+    // check the status of the job every 2 seconds
+    const status = await checkJobStatusEvery2Seconds(jobId);
+
+    // if status is complete, trigger subtitle generation
+    if (status === "COMPLETE") {
+      const subtitleGenerationResponse = await axios.post(
+        `${SUBTITLE_GENERATE_SERVICE_ENDPOINT}/generate-subtitle`,
+        {
+          bucket,
+          key,
+          mediaId,
+        },
+        {
+          headers: {
+            ContextInfo: JSON.stringify(previousContext),
+          },
+        }
+      );
+
+      console.log(
+        "Subtitle generation response: ",
+        subtitleGenerationResponse.data
+      );
+    }
+
+    // return JSON response with job status
+    res.json({ jobId, status });
   } catch (error) {
     span.setStatus({
       code: 2, // ERROR
@@ -88,3 +120,33 @@ app.post("/convert", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Media Convert Service running on port ${PORT}`);
 });
+
+async function checkJobStatusEvery2Seconds(jobId) {
+  return new Promise((resolve, reject) => {
+    let interval = setInterval(async () => {
+      try {
+        const command = new GetJobCommand({ Id: jobId });
+        const response = await mediaconvertClient.send(command);
+
+        console.log("MediaConvert Job Status:", response.Job.Status);
+
+        if (response.Job.Status === "COMPLETE") {
+          console.log("Media conversion job completed successfully.");
+          clearInterval(interval);
+          resolve("COMPLETE");
+        } else if (response.Job.Status === "ERROR") {
+          console.error(
+            "Media conversion job failed:",
+            response.Job.ErrorMessage
+          );
+          clearInterval(interval);
+          resolve("ERROR");
+        }
+      } catch (error) {
+        console.error("Error checking job status:", error);
+        clearInterval(interval);
+        reject(error);
+      }
+    }, 2000);
+  });
+}
