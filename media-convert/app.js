@@ -55,10 +55,15 @@ app.post("/convert", async (req, res) => {
     jobConfig.Settings.Inputs[0].FileInput = `s3://${bucket}/${key}`;
 
     // Update HLS output destination
-    jobConfig.Settings.OutputGroups[0].OutputGroupSettings.HlsGroupSettings.Destination = `s3://${bucket}/${mediaId}/HLS`;
+    jobConfig.Settings.OutputGroups[0].OutputGroupSettings.HlsGroupSettings.Destination = `s3://${bucket}/${mediaId}/HLS/`;
 
     // Update thumbnail output destination
-    jobConfig.Settings.OutputGroups[1].OutputGroupSettings.FileGroupSettings.Destination = `s3://${bucket}/${mediaId}/Thumbnails`;
+    jobConfig.Settings.OutputGroups[1].OutputGroupSettings.FileGroupSettings.Destination = `s3://${bucket}/${mediaId}/Thumbnails/`;
+
+    // pass context to the next service
+    jobConfig.UserMetadata = {
+      ...previousContext,
+    };
 
     // Create the MediaConvert job
     const command = new CreateJobCommand(jobConfig);
