@@ -6,11 +6,11 @@ const {
 } = require("@aws-sdk/client-transcribe");
 const express = require("express");
 const bodyParser = require("body-parser");
-const configureOpenTelemetry = require("./opentelemetry");
+const configureOpenTelemetry = require("./opentelemetry.js");
 const { context, propagation, trace } = require("@opentelemetry/api");
 require("dotenv").config();
 
-configureOpenTelemetry("subtitle-generator");
+configureOpenTelemetry("subtitle-generator-service");
 
 const app = express();
 app.use(bodyParser.json());
@@ -34,13 +34,13 @@ app.post("/generate-subtitle", async (req, res) => {
   const previousContext = JSON.parse(req.headers.contextinfo);
   const activeContext = propagation.extract(context.active(), previousContext);
 
-  let span = subtitleGeneratorTracer.startSpan(
+  let mainSpan = subtitleGeneratorTracer.startSpan(
     "generateSubtitle",
     { attributes: {} },
     activeContext
   );
 
-  trace.setSpan(context.active(), span);
+  trace.setSpan(context.active(), mainSpan);
 
   try {
     const { bucket, key, mediaId } = req.body;
@@ -49,21 +49,44 @@ app.post("/generate-subtitle", async (req, res) => {
       throw new Error("Missing required parameters: bucket, key, or mediaId.");
     }
 
-    span.setAttribute("bucket", bucket);
-    span.setAttribute("key", key);
-    span.setAttribute("mediaId", mediaId);
+    mainSpan.setAttribute("bucket", bucket);
+    mainSpan.setAttribute("key", key);
+    mainSpan.setAttribute("mediaId", mediaId);
+
+    // span - 2
+    let callTranscribeJobSpan = subtitleGeneratorTracer.startSpan(
+      "call-transcribe",
+      { attributes: {} },
+      activeContext
+    );
+    trace.setSpan(context.active(), callTranscribeJobSpan);
 
     const transcriptionJobResponse = await startTranscriptionJob(
       bucket,
       key,
       mediaId
     );
+    callTranscribeJobSpan.setAttribute(
+      "job-name",
+      transcriptionJobResponse.TranscriptionJob.TranscriptionJobName
+    );
+    callTranscribeJobSpan.end();
 
     const transcriptionJobName =
       transcriptionJobResponse.TranscriptionJob.TranscriptionJobName;
+
+    // span - 3
+    let checkJobStatusSpan = subtitleGeneratorTracer.startSpan(
+      "check-job-status",
+      { attributes: {} },
+      activeContext
+    );
+    trace.setSpan(context.active(), checkJobStatusSpan);
+
     const jobStatusAndLanguageCode = await checkJobStatusEverySecond(
       transcriptionJobName
     );
+    checkJobStatusSpan.end();
 
     res.json({
       service: "subtitle-generator",
@@ -73,7 +96,7 @@ app.post("/generate-subtitle", async (req, res) => {
       fileUrl: jobStatusAndLanguageCode.fileUrl,
     });
   } catch (error) {
-    span.setStatus({
+    mainSpan.setStatus({
       code: 2, // ERROR
       message: error.message,
     });
@@ -81,7 +104,7 @@ app.post("/generate-subtitle", async (req, res) => {
     console.error("Subtitle generation failed:", error);
     res.status(500).send(`Subtitle generation failed: ${error.message}`);
   } finally {
-    span.end();
+    mainSpan.end();
   }
 });
 

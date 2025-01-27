@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <%- include('partials/navigation.ejs') %>
+
+    <main class="flex-grow container mx-auto w-4/5 p-6">
+      <section class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Register</h2>
+
+        <!-- Registration Form -->
+        <form action="/auth/register" method="POST" class="space-y-6">
+          <!-- Username -->
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value="<%= formData?.username || '' %>"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+
+            <% if (errors) { %>
+              <% errors.forEach((error) => { %>
+                <!-- log the error -->
+                <% if (error.path === "username") { %>
+                  <p class="text-red-600 text-sm mt-1"><%= error.msg %></p>
+                <% } %>
+              <% }) %>
+            <% } %>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            <% if (errors) { %>
+              <% errors.forEach((error) => { %>
+                <% if (error.path === "password") { %>
+                  <p class="text-red-600 text-sm mt-1"><%= error.msg %></p>
+                <% } %>
+              <% }) %>
+            <% } %>
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            <% if (errors) { %>
+              <% errors.forEach((error) => { %>
+                <% if (error.path === "confirmPassword") { %>
+                  <p class="text-red-600 text-sm mt-1"><%= error.msg %></p>
+                <% } %>
+              <% }) %>
+            <% } %>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full bg-blue-600 text-white font-medium py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+          >
+            Register
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
+  </body>
+</html>

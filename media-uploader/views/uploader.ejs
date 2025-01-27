@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('partials/head.ejs') %>
-  <body>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
     <%- include('partials/navigation.ejs') %>
 
-    <main class="mx-auto w-4/5 p-12">
-      <h1>Upload Your Files</h1>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-6">
+      <section class="mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
+          Upload Your Video File to Transcode & Transcribe
+        </h2>
 
-      <!-- File Input -->
-      <input type="file" class="filepond mt-6" name="file" multiple />
+        <!-- FilePond Input -->
+        <input type="file" class="filepond mt-6" name="file" multiple />
+      </section>
     </main>
 
     <%- include('partials/footer.ejs') %>

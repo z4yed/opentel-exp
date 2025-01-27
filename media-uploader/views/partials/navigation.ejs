@@ -1,11 +1,19 @@
 <header class="bg-blue-600 text-white py-4">
   <div class="container mx-auto flex justify-between items-center">
+    <!-- Logo -->
     <h1 class="text-2xl font-bold">
       <a href="/" class="hover:underline">Media Processor</a>
     </h1>
+
+    <!-- Navigation Links -->
     <nav>
       <ul class="flex space-x-4">
-        <li><a href="/" class="hover:underline">Home</a></li>
+        <li>
+          <!-- show auth user name if available -->
+          <% if (user) { %>
+          <span class="text-sm">Welcome, <%= user.username %></span>
+          <% } %>
+        </li>
         <li><a href="/upload" class="hover:underline">Upload Media</a></li>
         <li>
           <a
@@ -15,6 +23,11 @@
             >Jaeger Tracer</a
           >
         </li>
+        <% if (user) { %>
+        <li><a href="/auth/logout" class="hover:underline">Logout</a></li>
+        <% } else { %>
+        <li><a href="/auth/login" class="hover:underline">Login</a></li>
+        <% } %>
       </ul>
     </nav>
   </div>

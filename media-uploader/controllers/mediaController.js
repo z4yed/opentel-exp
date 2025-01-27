@@ -18,6 +18,7 @@ const mediaUploadTracer = opentelemetry.trace.getTracer(
 const renderIndex = (req, res) => {
   res.render("index", {
     title: "Media Suite",
+    user: req.user,
   });
 };
 
