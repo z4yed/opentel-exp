@@ -1,12 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('partials/head.ejs') %>
-  <body>
+  <body class="bg-gray-50 text-gray-800">
     <%- include('partials/navigation.ejs') %>
 
-    <main class="mx-auto w-4/5 p-12">
-      <h2>Media Upload Service</h2>
-    </main>
+    <!-- Hero Section -->
+    <header class="bg-blue-600 text-white py-16">
+      <div class="container mx-auto text-center">
+        <h1 class="text-4xl font-bold mb-4">
+          Welcome to the Media Upload Service
+        </h1>
+        <p class="text-lg mb-6">
+          Effortlessly upload, manage, and monitor your media files with
+          built-in observability using OpenTelemetry.
+        </p>
+        <a
+          href="/upload"
+          class="px-6 py-3 bg-white text-blue-600 font-semibold rounded shadow hover:bg-gray-100"
+        >
+          Get Started
+        </a>
+      </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="container mx-auto my-12 p-6">
+      <h2 class="text-3xl font-bold text-center mb-8">Features</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="p-6 bg-white shadow rounded text-center">
+          <h3 class="text-xl font-semibold mb-4">Seamless Media Upload</h3>
+          <p class="text-gray-600">
+            Upload video and image files quickly and securely to the cloud.
+          </p>
+        </div>
+        <div class="p-6 bg-white shadow rounded text-center">
+          <h3 class="text-xl font-semibold mb-4">Real-Time Monitoring</h3>
+          <p class="text-gray-600">
+            Monitor file processing pipelines with OpenTelemetry-powered
+            insights.
+          </p>
+        </div>
+        <div class="p-6 bg-white shadow rounded text-center">
+          <h3 class="text-xl font-semibold mb-4">Cloud Integration</h3>
+          <p class="text-gray-600">
+            Leverage AWS services for transcoding, storage, and subtitle
+            generation.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OpenTelemetry Section -->
+    <section class="bg-blue-100 py-12">
+      <div class="container mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-6">
+          OpenTelemetry Observability
+        </h2>
+        <p class="text-center text-gray-700 mb-8">
+          Gain unparalleled insights into your system with OpenTelemetry. Trace
+          requests across services, measure performance, and detect bottlenecks
+          in real time.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="p-6 bg-white shadow rounded">
+            <h3 class="text-xl font-semibold mb-4">Distributed Tracing</h3>
+            <p class="text-gray-600">
+              Follow requests across microservices to identify issues and
+              optimize performance.
+            </p>
+          </div>
+          <div class="p-6 bg-white shadow rounded">
+            <h3 class="text-xl font-semibold mb-4">Metrics & Logs</h3>
+            <p class="text-gray-600">
+              Correlate traces with system metrics and logs for a comprehensive
+              view of system health.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="container mx-auto my-12 p-6">
+      <h2 class="text-3xl font-bold text-center mb-8">How It Works</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-6 bg-white shadow rounded">
+          <h3 class="text-xl font-semibold mb-4">1. Upload Your Media</h3>
+          <p class="text-gray-600">
+            Select your media files and upload them securely using our
+            interface.
+          </p>
+        </div>
+        <div class="p-6 bg-white shadow rounded">
+          <h3 class="text-xl font-semibold mb-4">2. Processing Pipeline</h3>
+          <p class="text-gray-600">
+            Your files are processed via AWS MediaConvert with real-time status
+            tracking.
+          </p>
+        </div>
+        <div class="p-6 bg-white shadow rounded">
+          <h3 class="text-xl font-semibold mb-4">3. Observability Insights</h3>
+          <p class="text-gray-600">
+            Monitor each step using OpenTelemetry-powered dashboards.
+          </p>
+        </div>
+        <div class="p-6 bg-white shadow rounded">
+          <h3 class="text-xl font-semibold mb-4">4. Download Results</h3>
+          <p class="text-gray-600">
+            Access processed media and logs via cloud storage links.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="bg-gray-100 py-12">
+      <div class="container mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-8">What Our Users Say</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="p-6 bg-white shadow rounded">
+            <blockquote class="italic text-gray-700">
+              "The Media Upload Service is a game changer! I can track every
+              step of the pipeline with OpenTelemetry."
+            </blockquote>
+            <p class="mt-4 font-semibold">- Jane Doe, Developer</p>
+          </div>
+          <div class="p-6 bg-white shadow rounded">
+            <blockquote class="italic text-gray-700">
+              "Real-time observability has made troubleshooting easier than
+              ever. Highly recommend this service!"
+            </blockquote>
+            <p class="mt-4 font-semibold">- John Smith, System Architect</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="bg-blue-600 text-white py-12">
+      <div class="container mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Upload Your Media?</h2>
+        <p class="text-lg mb-6">
+          Start using our Media Upload Service with built-in OpenTelemetry
+          observability today!
+        </p>
+        <a
+          href="/upload"
+          class="px-6 py-3 bg-white text-blue-600 font-semibold rounded shadow hover:bg-gray-100"
+        >
+          Upload Now
+        </a>
+      </div>
+    </section>
 
     <%- include('partials/footer.ejs') %>
   </body>

@@ -1,3 +1,4 @@
+const path = require("path");
 const {
   TranscribeClient,
   StartTranscriptionJobCommand,
@@ -14,6 +15,9 @@ configureOpenTelemetry("subtitle-generator");
 const app = express();
 app.use(bodyParser.json());
 
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
 const PORT = 3003;
 
 const subtitleGeneratorTracer = trace.getTracer(
@@ -22,7 +26,7 @@ const subtitleGeneratorTracer = trace.getTracer(
 );
 
 app.get("/", (req, res) => {
-  res.send("Subtitle Generator Service is running.");
+  res.render("index");
 });
 
 app.post("/generate-subtitle", async (req, res) => {

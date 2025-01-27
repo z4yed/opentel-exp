@@ -1,4 +1,5 @@
 const axios = require("axios");
+const path = require("path");
 const {
   MediaConvertClient,
   CreateJobCommand,
@@ -17,6 +18,9 @@ configureOpenTelemetry("media-convert-service");
 const app = express();
 app.use(bodyParser.json());
 
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
 const PORT = 3002;
 
 const mediaconvertClient = new MediaConvertClient({
@@ -30,7 +34,7 @@ const mediaconvertClient = new MediaConvertClient({
 const mediaConvertTracer = trace.getTracer("media-convert-tracer", "1.0");
 
 app.get("/", (req, res) => {
-  res.send("Media Convert Service is running.");
+  res.render("index");
 });
 
 app.post("/convert", async (req, res) => {
