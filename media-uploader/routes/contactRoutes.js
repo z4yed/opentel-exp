@@ -4,10 +4,8 @@ const contactController = require("../controllers/contactController");
 
 const router = express.Router();
 
-// Render Contact Form
 router.get("/contact", contactController.renderContactForm);
 
-// Handle Form Submission
 router.post(
   "/contact",
   [

@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
+require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "secretSigner";
 

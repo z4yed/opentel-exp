@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
+const baseRoutes = require("./routes/baseRoutes");
 const mediaRoutes = require("./routes/mediaRoutes");
 const authRoutes = require("./routes/authRoutes");
 const contactRoutes = require("./routes/contactRoutes");
@@ -31,6 +32,9 @@ app.use((req, res, next) => {
     req.cookies?.token ||
     (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
+  console.log("Token:", token);
+  console.log("JWT_SECRET", JWT_SECRET);
+
   if (!token) {
     res.locals.user = null; // No user info if token is missing
     return next(); // Allow non-protected routes to proceed
@@ -48,6 +52,7 @@ app.use((req, res, next) => {
   }
 });
 
+app.use("/", baseRoutes);
 app.use("/", contactRoutes);
 app.use("/", mediaRoutes);
 app.use("/auth", authRoutes);

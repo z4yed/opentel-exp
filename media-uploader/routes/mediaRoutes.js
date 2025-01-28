@@ -2,12 +2,17 @@ const express = require("express");
 const router = express.Router();
 const mediaController = require("../controllers/mediaController");
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
+
 const JWT_SECRET = process.env.JWT_SECRET || "secretSigner";
 
 const authenticateToken = (req, res, next) => {
   const token =
     req.cookies?.token || // Check token in cookies
     (req.headers.authorization && req.headers.authorization.split(" ")[1]);
+
+  console.log("Token:", token);
+  console.log("JWT_SECRET", JWT_SECRET);
 
   if (!token) {
     res.locals.user = null; // Ensure user info is available in views
@@ -34,16 +39,6 @@ const authenticateToken = (req, res, next) => {
       );
   }
 };
-
-router.get("/", mediaController.renderIndex);
-
-router.get("/faq", (req, res) => {
-  res.render("faq", { title: "FAQ - Media Processor" });
-});
-
-router.get("/about", (req, res) => {
-  res.render("about", { title: "About Us" });
-});
 
 router.get("/upload", authenticateToken, mediaController.renderUploader);
 
