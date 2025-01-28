@@ -49,25 +49,13 @@ router.post(
   mediaController.processFile
 );
 
-router.get(
-  "/media/:id",
-  authenticateToken,
-  mediaController.getMediaPublicDetails
-);
+router.get("/:id", authenticateToken, mediaController.getMediaPublicDetails);
 
-router.get(
-  "/media/:id/details",
-  authenticateToken,
-  mediaController.getMediaDetails
-);
+router.get("/:id/details", authenticateToken, mediaController.getMediaDetails);
 
-router.post(
-  "/media/:id/delete/",
-  authenticateToken,
-  mediaController.deleteMedia
-);
+router.post("/:id/delete/", authenticateToken, mediaController.deleteMedia);
 
-router.get("/media/:id/edit", authenticateToken, async (req, res) => {
+router.get("/:id/edit", authenticateToken, async (req, res) => {
   try {
     const media = await MediaModel.findById(req.params.id);
     const categories = await Category.find({});
@@ -92,7 +80,7 @@ router.get("/media/:id/edit", authenticateToken, async (req, res) => {
 });
 
 router.post(
-  "/media/:id/edit",
+  "/:id/edit",
   authenticateToken,
   [
     body("title")
@@ -146,5 +134,14 @@ router.post(
     }
   }
 );
+
+// comment routes
+router.post(
+  "/:mediaId/comments",
+  authenticateToken,
+  mediaController.addComment
+);
+
+router.get("/:mediaId/comments", mediaController.getComments);
 
 module.exports = router;

@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 
 app.use("/", baseRoutes);
 app.use("/", contactRoutes);
-app.use("/", mediaRoutes);
+app.use("/media", mediaRoutes);
 app.use("/auth", authRoutes);
 
 app.listen(PORT, () => {

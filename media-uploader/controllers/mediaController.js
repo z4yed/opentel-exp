@@ -2,6 +2,7 @@ const multer = require("multer");
 const axios = require("axios");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const MediaModel = require("../models/mediaModel");
+const CommentModel = require("../models/Comment");
 const { MEDIA_CONVERT_SERVICE_URL } = require("../constants");
 const opentelemetry = require("@opentelemetry/api");
 
@@ -157,6 +158,7 @@ const processFile = async (req, res) => {
 const getMediaPublicDetails = async (req, res) => {
   const { id } = req.params;
   const media = await MediaModel.findById(id).populate("category");
+  const comments = await CommentModel.find({ media: id }).populate("user");
 
   const relatedMedia = await MediaModel.find({
     category: media.category,
@@ -171,6 +173,7 @@ const getMediaPublicDetails = async (req, res) => {
     title: "Media Suite - Media",
     media,
     relatedMedia,
+    comments,
   });
 };
 
@@ -218,11 +221,68 @@ const deleteMedia = async (req, res) => {
   }
 };
 
+const addComment = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const { mediaId } = req.params;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ message: "Comment content is required." });
+    }
+
+    // Create a new comment
+    const comment = new CommentModel({
+      content,
+      media: mediaId,
+      user: req.user.id,
+    });
+
+    await comment.save();
+
+    // Add the comment to the media
+    await MediaModel.findByIdAndUpdate(mediaId, {
+      $push: { comments: comment._id },
+    });
+
+    const commentWithUser = await CommentModel.findById(comment._id).populate(
+      "user",
+      "username"
+    );
+    // send comment with populated user
+    res
+      .status(201)
+      .json({
+        message: "Comment added successfully!",
+        comment: commentWithUser,
+      });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const getComments = async (req, res) => {
+  try {
+    const { mediaId } = req.params;
+
+    const comments = await CommentModel.find({ media: mediaId })
+      .populate("user", "username") // Populate the user with their username
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   renderUploader,
   processFile,
   deleteMedia,
   getMediaDetails,
   getMediaPublicDetails,
+  addComment,
+  getComments,
   upload,
 };
