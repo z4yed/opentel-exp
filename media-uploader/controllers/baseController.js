@@ -2,11 +2,20 @@ const MediaModel = require("../models/mediaModel");
 const CategoryModel = require("../models/Category");
 
 const renderIndex = async (req, res) => {
-  try {
-    // Fetch all categories
-    const categories = await CategoryModel.find();
+  // http://localhost:3001/?category=Education
+  const categoryName = req.query.category;
+  let filteredCategory = null;
 
-    // Fetch categorized media
+  if (categoryName) {
+    filteredCategory = await CategoryModel.findOne({ name: categoryName });
+  }
+
+  console.log("filteredCategory", filteredCategory);
+
+  try {
+    const categories = await CategoryModel.find();
+    const filteredMedia = [];
+
     const categorizedMedia = {};
     for (const category of categories) {
       const media = await MediaModel.find({
@@ -16,20 +25,23 @@ const renderIndex = async (req, res) => {
       })
         .populate("category")
         .populate("uploadedBy");
+
       if (media.length > 0) {
+        if (filteredCategory && category.name === filteredCategory.name) {
+          filteredMedia.push(...media);
+        }
         categorizedMedia[category.name] = media;
       }
     }
 
-    const uncategorizedMedia = await MediaModel.find({
-      category: null,
-      published: true,
-    }).populate("uploadedBy");
+    console.log("categorizedMedia", categorizedMedia);
+    console.log("filteredMedia", filteredMedia);
 
     res.render("index", {
       title: "Media Suite - Home",
       categorizedMedia,
-      uncategorizedMedia,
+      filteredMedia,
+      filteredCategoryName: filteredCategory ? filteredCategory.name : null,
     });
   } catch (error) {
     console.error("Error rendering index page:", error);

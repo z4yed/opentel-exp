@@ -94,8 +94,8 @@ exports.login = async (req, res) => {
     res.cookie("token", token, { httpOnly: true, maxAge: 3600000 }); // Cookie valid for 1 hour
     console.log("User logged in:", user.username, token);
 
-    // Redirect to a protected route or dashboard
-    res.redirect("/upload");
+    // Redirect to upload page
+    res.redirect("/media/upload");
   } catch (error) {
     console.error("Error logging in user:", error);
     res.status(500).render("login", {

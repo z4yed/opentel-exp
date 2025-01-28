@@ -184,7 +184,7 @@ const getMediaDetails = async (req, res) => {
   // if media is not found or not uploaded by the user
   if (!media || media.uploadedBy.toString() !== req.user.id) {
     return res.redirect(
-      "/upload?error=" + encodeURIComponent("Media not found")
+      "/media/upload?error=" + encodeURIComponent("Media not found")
     );
   }
 
@@ -209,12 +209,12 @@ const deleteMedia = async (req, res) => {
     // if media is not found or not uploaded by the user
     if (!media || media.uploadedBy.toString() !== req.user.id) {
       return res.redirect(
-        "/upload?error=" + encodeURIComponent("Media not found")
+        "/media/upload?error=" + encodeURIComponent("Media not found")
       );
     }
 
     await MediaModel.findByIdAndDelete(id);
-    res.redirect("/upload?deleted=true");
+    res.redirect("/media/upload?deleted=true");
   } catch (error) {
     console.error("Error deleting media:", error.message);
     res.status(500).redirect("/upload?deleted=false");
@@ -249,12 +249,10 @@ const addComment = async (req, res) => {
       "username"
     );
     // send comment with populated user
-    res
-      .status(201)
-      .json({
-        message: "Comment added successfully!",
-        comment: commentWithUser,
-      });
+    res.status(201).json({
+      message: "Comment added successfully!",
+      comment: commentWithUser,
+    });
   } catch (error) {
     console.error("Error adding comment:", error);
     res.status(500).json({ message: "Internal Server Error" });
