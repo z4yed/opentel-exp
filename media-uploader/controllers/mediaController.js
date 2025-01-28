@@ -129,7 +129,7 @@ const processFile = async (req, res) => {
         });
       }
 
-      res.status(200).send("File uploaded And processed.");
+      res.redirect("/upload?processed=true");
     } catch (error) {
       console.error(error);
       span.setStatus({

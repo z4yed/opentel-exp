@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <%- include('partials/navigation.ejs') %>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-6">
+      <!-- About Us Section -->
+      <section class="mx-auto bg-white p-8 rounded-lg shadow-lg max-w-4xl">
+        <h1 class="text-4xl font-extrabold mb-6 text-center text-blue-600">
+          About Us
+        </h1>
+
+        <!-- Project Description -->
+        <p class="text-lg text-gray-700 mb-6">
+          Welcome to the Media Processing Suite, a cutting-edge platform designed
+          to simplify media file uploads, transcoding, and subtitle generation.
+          Built with modern technologies like <span class="font-bold">OpenTelemetry</span>,
+          AWS MediaConvert, AWS Transcribe, and Jaeger Exporter, our application ensures seamless performance monitoring,
+          comprehensive visibility, and scalability in a distributed system.
+        </p>
+
+        <!-- Vision -->
+        <h2 class="text-2xl font-bold text-blue-500 mb-4">Our Vision</h2>
+        <p class="text-lg text-gray-700 leading-relaxed mb-4">
+          Our vision is to revolutionize the way media is processed and managed
+          in the digital age. By integrating observability at every layer of our
+          platform, we empower developers and organizations to deliver high-quality
+          media experiences effortlessly. With tools like the Jaeger Exporter, we provide
+          unparalleled traceability, allowing teams to visualize and optimize
+          their media workflows in real-time.
+        </p>
+        <p class="text-lg text-gray-700 leading-relaxed mb-6">
+          We believe in creating a transparent and efficient media ecosystem where
+          every interaction can be monitored, traced, and enhanced. Our platform
+          is designed to reduce complexity, increase reliability, and foster
+          innovation, ensuring that our users stay ahead in a rapidly evolving
+          technological landscape.
+        </p>
+
+        <!-- Mission -->
+        <h2 class="text-2xl font-bold text-blue-500 mb-4">Our Mission</h2>
+        <p class="text-lg text-gray-700 leading-relaxed mb-4">
+          At the heart of our mission is a commitment to simplifying the complexities
+          of media processing while providing robust tools for observability. We aim
+          to create an environment where developers focus on innovation rather than
+          infrastructure, leveraging technologies like OpenTelemetry and Jaeger
+          Exporter for comprehensive insights.
+        </p>
+        <p class="text-lg text-gray-700 leading-relaxed mb-4">
+          Our platform enables users to seamlessly trace media processing activities,
+          diagnose issues faster, and optimize system performance. By offering detailed
+          metrics and visualizations through Jaeger, we empower our users to understand
+          every nuance of their media workflows.
+        </p>
+        <p class="text-lg text-gray-700 leading-relaxed">
+          We are dedicated to building a community that embraces transparency,
+          efficiency, and growth. As we continue to innovate and expand our
+          services, our mission remains steadfast—providing the best tools for
+          media management and observability to all our users, from startups
+          to large enterprises.
+        </p>
+
+        <section class="mt-8 text-center bg-gray-50 p-6 rounded-lg shadow-md">
+          <h2 class="text-2xl font-bold text-blue-600 mb-4">Join Us Today!</h2>
+          <p class="text-lg text-gray-700 mb-6">
+            Ready to experience a seamless media processing platform? Register
+            now and unlock all the powerful features we offer.
+          </p>
+          <a
+            href="/auth/register"
+            class="bg-blue-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600 transition shadow-md"
+          >
+            Register Now
+          </a>
+        </section>
+      </section>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
+  </body>
+</html>

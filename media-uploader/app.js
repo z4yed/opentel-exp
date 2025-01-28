@@ -3,6 +3,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const mediaRoutes = require("./routes/mediaRoutes");
 const authRoutes = require("./routes/authRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const configureOpenTelemetry = require("./opentelemetry");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -47,6 +48,7 @@ app.use((req, res, next) => {
   }
 });
 
+app.use("/", contactRoutes);
 app.use("/", mediaRoutes);
 app.use("/auth", authRoutes);
 

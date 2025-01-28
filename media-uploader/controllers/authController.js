@@ -34,6 +34,8 @@ exports.register = async (req, res) => {
     res.status(201).render("login", {
       title: "Login",
       successMessage: "Registration successful! You can now log in.",
+      errors: null,
+      formData: {},
     });
   } catch (error) {
     console.error("Error registering user:", error);

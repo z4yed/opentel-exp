@@ -100,9 +100,22 @@
 
       // check deleted parameter in URL to show success message
       const urlParams = new URLSearchParams(window.location.search);
+      const processed = urlParams.get("processed") === "true";
       const deleted = urlParams.get("deleted") === "true";
       const notDeleted = urlParams.get("deleted") === "false";
       const errorValue = urlParams.get("error") || null;
+
+      if (processed) {
+        Toastify({
+          text: "Media processed successfully",
+          duration: 3000, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#4CAF50", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+        }).showToast();
+      }
 
       if (deleted) {
         Toastify({
