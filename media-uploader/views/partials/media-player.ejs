@@ -1,0 +1,43 @@
+<section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
+    Video Player
+  </h2>
+  <video
+    id="videoPlayer"
+    class="video-js vjs-default-skin vjs-big-play-centered mx-auto"
+    controls
+    preload="auto"
+    data-setup='{}'
+    width="640"
+    height="360"
+    poster="<%= media.thumbnailUrl %>"
+  >
+    <% if (media.subtitleUrl && media.subtitleLanguageCode) { %>
+      <track
+        kind="captions"
+        src="<%= media.subtitleUrl %>"
+        srclang="<%= media.subtitleLanguageCode %>"
+        label="English"
+        default
+      />
+    <% } %>
+  </video>
+</section>
+
+<script>
+  const player = videojs("videoPlayer", {
+    controls: true,
+    autoplay: false,
+    preload: "auto",
+    textTrackSettings: false,
+    sources: [
+      {
+        src: "<%= media.streamingUrl %>",
+        type: "application/x-mpegURL",
+      },
+    ],
+    poster: "<%= media.thumbnailUrl %>",
+  });
+
+  console.log("Video.js player initialized:", player);
+</script>

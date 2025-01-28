@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <%- include('partials/navigation.ejs') %>
+
+    <main class="flex-grow container mx-auto p-6">
+
+      <%- include('partials/media-player.ejs', { media }) %>
+
+      <section class="mx-auto bg-white p-8 shadow-lg ">
+        <h1 class="text-4xl font-extrabold mb-6 text-blue-600">Edit Media</h1>
+
+        <% if (media.mediaConvertStatus !== "COMPLETE") { %>
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            You can only edit this media after it has completed transcoding.
+          </div>
+        <% } else { %>
+          <% if (errors && errors.length > 0) { %>
+            <ul class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <% errors.forEach((error) => { %>
+                <li><%= error.msg %></li>
+              <% }) %>
+            </ul>
+          <% } %>
+
+          <form action="/media/<%= media._id %>/edit" method="POST" class="space-y-6">
+            <!-- Title -->
+            <div>
+              <label for="title" class="block text-gray-700 font-bold mb-2">Title</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value="<%= media.title || '' %>"
+                class="w-full p-3 border rounded-lg shadow-sm"
+              />
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label for="category" class="block text-gray-700 font-bold mb-2">Category</label>
+              <select
+                id="category"
+                name="category"
+                class="w-full p-3 border rounded-lg shadow-sm"
+              >
+                <option value="">Select a Category</option>
+                <% categories.forEach((category) => { %>
+                  <option
+                    value="<%= category._id %>"
+                    <%= media.category && media.category._id.toString() === category._id.toString() ? "selected" : "" %>
+                  >
+                    <%= category.name %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- Publish -->
+            <div>
+              <label class="block text-gray-700 font-bold mb-2">Publish</label>
+              <div class="flex items-center space-x-4">
+                <label>
+                  <input
+                    type="radio"
+                    name="published"
+                    value="true"
+                    <%= media.published ? "checked" : "" %>
+                  />
+                  Yes
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="published"
+                    value="false"
+                    <%= !media.published ? "checked" : "" %>
+                  />
+                  No
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-600 transition"
+            >
+              Save Changes
+            </button>
+          </form>
+        <% } %>
+      </section>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
+  </body>
+</html>

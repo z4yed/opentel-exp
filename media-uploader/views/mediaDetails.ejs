@@ -6,19 +6,29 @@
 
     <main class="flex-grow container mx-auto w-4/5 p-6">
       <section class="mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold mb-6 text-blue-600">
-          Media Details
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold mb-6 text-blue-600">
+                Media Details
+            </h2>
+            <a href="/media/<%= media._id %>/edit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                Edit Media Info
+            </a>
+        </div>
+
 
         <!-- Media Details -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Title</h3>
+            <p><%= media.title || "Not Specified" %></p>
+          </div>
           <div>
             <h3 class="text-xl font-semibold mb-4">File Name</h3>
             <p><%= media.filename %></p>
           </div>
           <div>
             <h3 class="text-xl font-semibold mb-4">File Size</h3>
-            <p><%= media.size %> bytes</p>
+            <p><%= (media.filesize / 1000000).toFixed(2) %> MB</p>
           </div>
           <div>
             <h3 class="text-xl font-semibold mb-4">File Type</h3>
@@ -28,26 +38,26 @@
             <h3 class="text-xl font-semibold mb-4">Uploaded At</h3>
             <p><%= media.uploadedAt %></p>
           </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Subtitle Language</h3>
+                <p><%= media.subtitleLanguageCode %></p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Category</h3>
+                <p><%= media.category?.name || "Not Specified" %></p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold mb-4">Publish Status</h3>
+                <p><%= media.published ? "Published" : "Not Published" %></p>
+            </div>
+
         </div>
       </section>
 
-
-      <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
-            Video Player
-        </h2>
-            <video
-                id="videoPlayer"
-                class="video-js vjs-default-skin vjs-big-play-centered mx-auto"
-                controls
-                preload="auto"
-                data-setup='{}'
-                width="640"
-                height="360"
-            >
-                <track kind="captions" src="<%= media.subtitleUrl %>" srclang="<%= media.subtitleLanguageCode %> label="English" default>
-            </video>
-      </section>
+      <!-- include media-player partials -->
+      <%- include('partials/media-player.ejs', { media }) %>
 
       <!-- Show related video files -->
     <% if (relatedMedia.length > 0) { %>
@@ -86,20 +96,20 @@
     </main>
 
     <%- include('partials/footer.ejs') %>
-    <script>
-        const player = videojs("videoPlayer", {
-            controls: true,
-            autoplay: false,
-            preload: "auto",
-            textTrackSettings: false,
-            sources: [{
-                src: "<%= media.streamingUrl %>",
-                type: 'application/x-mpegURL'
-            }],
-            poster: "<%= media.thumbnailUrl %>",
-        });
 
-        console.log("Video.js player initialized:", player);
+    <script>
+        // if url has updated=true query param, show success message
+        const urlParams = new URLSearchParams(window.location.search);
+        const updated = urlParams.get('updated') === 'true';
+
+        if (updated) {
+            Toastify({
+                text: "Media updated successfully",
+                duration: 3000,
+                close: true,
+                backgroundColor: "linear-gradient(to right, #4caf50, #4caf50)",
+            }).showToast();
+        }
     </script>
   </body>
 </html>

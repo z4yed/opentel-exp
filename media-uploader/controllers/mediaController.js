@@ -17,7 +17,11 @@ const mediaUploadTracer = opentelemetry.trace.getTracer(
 
 const renderUploader = async (req, res) => {
   try {
-    const mediaList = await MediaModel.find({ uploadedBy: req.user.id });
+    const mediaList = await MediaModel.find({ uploadedBy: req.user.id })
+      .sort({
+        uploadedAt: -1,
+      })
+      .populate("category");
 
     res.render("uploader", {
       title: "Media Suite - Uploader",
@@ -46,6 +50,7 @@ const processFile = async (req, res) => {
       );
 
       const file = req.file;
+      console.log("Uploading to s3: PROCESSING");
       const s3 = new S3Client({ region: process.env.AWS_REGION });
       const fileUniqueName = Math.random().toString(36).slice(2, 18) + ".mp4";
       const input = {
@@ -59,7 +64,7 @@ const processFile = async (req, res) => {
       const response = await s3.send(putCommand);
 
       if (response.$metadata.httpStatusCode === 200) {
-        console.log("File uploaded to S3 bucket successfully");
+        console.log("Uploading to s3: Success");
         uploadSpan.setAttribute("uploadStatus", "success");
         uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
         uploadSpan.setAttribute("s3Key", fileUniqueName);
@@ -136,6 +141,7 @@ const processFile = async (req, res) => {
           subtitleStatus: responseData.subtitleGenerationStatus,
         });
       }
+      res.status(200).send("File uploaded successfully");
     } catch (error) {
       console.error(error);
       span.setStatus({
@@ -148,9 +154,29 @@ const processFile = async (req, res) => {
   });
 };
 
-const getMedia = async (req, res) => {
+const getMediaPublicDetails = async (req, res) => {
   const { id } = req.params;
-  const media = await MediaModel.findById(id);
+  const media = await MediaModel.findById(id).populate("category");
+
+  const relatedMedia = await MediaModel.find({
+    category: media.category,
+    _id: { $ne: media._id },
+  }).populate("category");
+
+  if (!media) {
+    return res.redirect("/");
+  }
+
+  res.render("mediaPublicDetails", {
+    title: "Media Suite - Media",
+    media,
+    relatedMedia,
+  });
+};
+
+const getMediaDetails = async (req, res) => {
+  const { id } = req.params;
+  const media = await MediaModel.findById(id).populate("category");
 
   // if media is not found or not uploaded by the user
   if (!media || media.uploadedBy.toString() !== req.user.id) {
@@ -160,9 +186,10 @@ const getMedia = async (req, res) => {
   }
 
   const relatedMedia = await MediaModel.find({
+    category: media.category,
     uploadedBy: media.uploadedBy,
     _id: { $ne: media._id },
-  });
+  }).populate("category");
 
   res.render("mediaDetails", {
     title: "Media Suite - Media Details",
@@ -195,6 +222,7 @@ module.exports = {
   renderUploader,
   processFile,
   deleteMedia,
-  getMedia,
+  getMediaDetails,
+  getMediaPublicDetails,
   upload,
 };

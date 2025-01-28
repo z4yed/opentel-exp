@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { upload } = require("../controllers/mediaController");
 
 const MediaSchema = new mongoose.Schema({
   title: {

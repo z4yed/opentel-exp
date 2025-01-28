@@ -26,6 +26,9 @@
             <thead>
               <tr class="bg-blue-100">
                 <th class="border border-gray-300 px-4 py-2">File Name</th>
+                <th class="border border-gray-300 px-4 py-2">Processed at</th>
+                <th class="border border-gray-300 px-4 py-2">Category</th>
+                <th class="border border-gray-300 px-4 py-2">Published?</th>
                 <th class="border border-gray-300 px-4 py-2">Actions</th>
               </tr>
             </thead>
@@ -38,6 +41,21 @@
                       <%= media.filename %>
                     </td>
 
+                    <!-- Processed At -->
+                    <td class="border border-gray-300 px-4 py-2">
+                      <%= media.uploadedAt.toLocaleString() %>
+                    </td>
+
+                    <!-- Category -->
+                    <td class="border border-gray-300 px-4 py-2">
+                      <%= media.category?.name || "Not Specified" %>
+                    </td>
+
+                    <!-- Published -->
+                    <td class="border border-gray-300 px-4 py-2">
+                      <%= media.published ? "Yes" : "No" %>
+                    </td>
+
                     <!-- Actions -->
                     <td class="border border-gray-300 px-4 py-2 space-x-2">
                       <!-- Navigate to Details Button -->
@@ -48,11 +66,20 @@
                         Details
                       </a>
 
+                      <!-- Edit Button -->
+                      <a
+                        href="/media/<%= media._id %>/edit"
+                        class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                      >
+                        Edit
+                      </a>
+
                       <!-- Delete Button -->
                       <form
                         action="/media/<%= media._id %>/delete"
                         method="POST"
                         class="inline-block"
+                          onsubmit="return confirm('Are you sure you want to delete this media?');"
                       >
                         <button
                           type="submit"
@@ -92,9 +119,9 @@
         allowFileTypeValidation: true,
         acceptedFileTypes: ["video/mp4"],
         fileValidateTypeDetectType: (source, type) =>
-              new Promise((resolve, reject) => {
-                  resolve(type);
-              }),
+          new Promise((resolve, reject) => {
+              resolve(type);
+        }),
         server: {
           url: "/upload",
           revert: (uniqueFileId, load, error) => {
@@ -104,8 +131,27 @@
       });
 
       // on file upload complete, reload the page
-      pond.on("processfile", () => {
-        window.location.href = "/upload?processed=true";
+      pond.on("processfile", (error, file) => {
+        if (error) {
+          console.error("File processing failed", error);
+          return;
+        }
+
+        console.log("File processing complete", file);
+        Toastify({
+          text: "Media uploaded successfully",
+          duration: 3000, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#4CAF50", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+        }).showToast();
+
+        // reload the page after 3 seconds
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       });
 
       // check deleted parameter in URL to show success message
