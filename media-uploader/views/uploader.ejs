@@ -82,13 +82,19 @@
 
     <%- include('partials/footer.ejs') %>
 
-    <!-- FilePond JS -->
-    <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
-
     <script>
+      FilePond.registerPlugin(FilePondPluginImagePreview);
+      FilePond.registerPlugin(FilePondPluginFileValidateType);
+
       const inputElement = document.querySelector('input[type="file"]');
       const pond = FilePond.create(inputElement, {
         credits: false,
+        allowFileTypeValidation: true,
+        acceptedFileTypes: ["video/mp4"],
+        fileValidateTypeDetectType: (source, type) =>
+              new Promise((resolve, reject) => {
+                  resolve(type);
+              }),
         server: {
           url: "/upload",
           revert: (uniqueFileId, load, error) => {
@@ -96,7 +102,6 @@
           },
         },
       });
-
 
       // check deleted parameter in URL to show success message
       const urlParams = new URLSearchParams(window.location.search);
