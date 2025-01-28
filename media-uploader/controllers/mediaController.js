@@ -15,13 +15,6 @@ const mediaUploadTracer = opentelemetry.trace.getTracer(
   "1.0"
 );
 
-const renderIndex = (req, res) => {
-  res.render("index", {
-    title: "Media Suite",
-    user: req.user,
-  });
-};
-
 const renderUploader = async (req, res) => {
   try {
     const mediaList = await MediaModel.find({ uploadedBy: req.user.id });
@@ -46,10 +39,15 @@ const processFile = async (req, res) => {
       span.setAttribute("file.size", req.file.size);
       span.setAttribute("file.type", req.file.mimetype);
 
+      const uploadSpan = mediaUploadTracer.startSpan(
+        "upload-to-s3",
+        { attributes: {} },
+        context.active()
+      );
+
       const file = req.file;
       const s3 = new S3Client({ region: process.env.AWS_REGION });
       const fileUniqueName = Math.random().toString(36).slice(2, 18) + ".mp4";
-
       const input = {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: fileUniqueName,
@@ -61,6 +59,18 @@ const processFile = async (req, res) => {
       const response = await s3.send(putCommand);
 
       if (response.$metadata.httpStatusCode === 200) {
+        uploadSpan.setAttribute("uploadStatus", "success");
+        uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
+        uploadSpan.setAttribute("s3Key", fileUniqueName);
+        uploadSpan.end();
+
+        // create a new media record span
+        const mediaSpan = mediaUploadTracer.startSpan(
+          "create-media-record",
+          { attributes: {} },
+          context.active()
+        );
+
         const media = new MediaModel({
           filename: file.originalname,
           filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
@@ -71,9 +81,11 @@ const processFile = async (req, res) => {
         });
 
         await media.save();
+        mediaSpan.setAttribute("record-id", media._id);
+        mediaSpan.end();
 
         // pass context to the next service
-        const convertResponse = await axios.post(
+        const videoProcessResponse = await axios.post(
           `${MEDIA_CONVERT_SERVICE_URL}/convert`,
           {
             bucket: process.env.S3_BUCKET_NAME,
@@ -87,45 +99,38 @@ const processFile = async (req, res) => {
           }
         );
 
-        console.log("=================");
-        console.log("Final Response: ", convertResponse.data);
-        console.log("=================");
+        const responseData = videoProcessResponse.data;
 
-        span.setAttribute(
-          "mediaConvertJobId",
-          convertResponse.data.mediaConvertJobId
-        );
+        console.log("=================================");
+        console.log("Final Response: ", responseData);
+        console.log("=================================");
+
+        span.setAttribute("mediaConvertJobId", responseData.mediaConvertJobId);
         span.setAttribute(
           "mediaConvertJobStatus",
-          convertResponse.data.mediaConvertJobStatus
+          responseData.mediaConvertJobStatus
         );
-        span.setAttribute(
-          "hlsPlaylistUrl",
-          convertResponse.data.hlsPlaylistUrl
-        );
-        span.setAttribute("thumbnailUrl", convertResponse.data.thumbnailUrl);
-        span.setAttribute("mediaId", convertResponse.data.mediaId);
+        span.setAttribute("hlsPlaylistUrl", responseData.hlsPlaylistUrl);
+        span.setAttribute("thumbnailUrl", responseData.thumbnailUrl);
+        span.setAttribute("mediaId", responseData.mediaId);
         span.setAttribute(
           "subtitleGenerationStatus",
-          convertResponse.data.subtitleGenerationStatus
+          responseData.subtitleGenerationStatus
         );
         span.setAttribute(
           "subtitleLanguageCode",
-          convertResponse.data.subtitleLanguageCode
+          responseData.subtitleLanguageCode
         );
-        span.setAttribute(
-          "subtitleFileUrl",
-          convertResponse.data.subtitleFileUrl
-        );
+        span.setAttribute("subtitleFileUrl", responseData.subtitleFileUrl);
 
         await MediaModel.findByIdAndUpdate(media._id, {
-          mediaConvertJobId: convertResponse.data.mediaConvertJobId,
-          mediaConvertStatus: convertResponse.data.mediaConvertJobStatus,
-          streamingUrl: convertResponse.data.hlsPlaylistUrl,
-          thumbnailUrl: convertResponse.data.thumbnailUrl,
-          subtitleUrl: convertResponse.data.subtitleFileUrl,
-          subtitleLanguageCode: convertResponse.data.subtitleLanguageCode,
-          subtitleStatus: convertResponse.data.subtitleGenerationStatus,
+          mediaConvertJobId: responseData.mediaConvertJobId,
+          mediaConvertStatus: responseData.mediaConvertJobStatus,
+          streamingUrl: responseData.hlsPlaylistUrl,
+          thumbnailUrl: responseData.thumbnailUrl,
+          subtitleUrl: responseData.subtitleFileUrl,
+          subtitleLanguageCode: responseData.subtitleLanguageCode,
+          subtitleStatus: responseData.subtitleGenerationStatus,
         });
       }
 
@@ -187,7 +192,6 @@ const deleteMedia = async (req, res) => {
 };
 
 module.exports = {
-  renderIndex,
   renderUploader,
   processFile,
   deleteMedia,

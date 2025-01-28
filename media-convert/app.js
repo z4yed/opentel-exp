@@ -121,7 +121,7 @@ app.post("/convert", async (req, res) => {
       payload.subtitleGenerationStatus = subtitleGenerationResponse.data.status;
       payload.subtitleLanguageCode =
         subtitleGenerationResponse.data.languageCode;
-      payload.subtitleFileUrl = `${process.env.CLOUDFRONT_URL}${subtitleGenerationResponse.data.fileUrl}`;
+      payload.subtitleFileUrl = subtitleGenerationResponse.data.fileUrl;
     } else {
       payload.subtitleErrorMessage = jobDetails.errorMessage;
     }

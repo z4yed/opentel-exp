@@ -145,20 +145,24 @@ async function checkJobStatusEverySecond(jobName) {
           resolve({
             status: "COMPLETED",
             languageCode: response.TranscriptionJob.LanguageCode,
-            fileUrl: relativePath,
-          });
-        } else if (jobStatus === "FAILED") {
-          console.error(
-            "Transcription job failed:",
-            response.TranscriptionJob.FailureReason
-          );
-          clearInterval(interval);
-          resolve({
-            status: "FAILED",
-            languageCode: null,
-            fileUrl: null,
+            fileUrl: `${process.env.CLOUDFRONT_URL}${relativePath}`,
           });
         }
+
+        // else if (jobStatus === "FAILED") {
+        //   console.error(
+        //     "Transcription job failed:",
+        //     response.TranscriptionJob.FailureReason
+        //   );
+        //   clearInterval(interval);
+        //   resolve({
+        //     status: "FAILED",
+        //     languageCode: null,
+        //     fileUrl: null,
+        //   });
+        // }
+
+        throw new Error("Transcription job failed.");
       } catch (error) {
         console.error("Error checking job status:", error);
         clearInterval(interval);

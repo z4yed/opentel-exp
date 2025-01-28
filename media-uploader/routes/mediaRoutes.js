@@ -11,9 +11,6 @@ const authenticateToken = (req, res, next) => {
     req.cookies?.token || // Check token in cookies
     (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
-  console.log("Token:", token);
-  console.log("JWT_SECRET", JWT_SECRET);
-
   if (!token) {
     res.locals.user = null; // Ensure user info is available in views
     return res

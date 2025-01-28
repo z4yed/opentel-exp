@@ -32,9 +32,6 @@ app.use((req, res, next) => {
     req.cookies?.token ||
     (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
-  console.log("Token:", token);
-  console.log("JWT_SECRET", JWT_SECRET);
-
   if (!token) {
     res.locals.user = null; // No user info if token is missing
     return next(); // Allow non-protected routes to proceed
