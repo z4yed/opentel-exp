@@ -103,6 +103,11 @@
         },
       });
 
+      // on file upload complete, reload the page
+      pond.on("processfile", () => {
+        window.location.href = "/upload?processed=true";
+      });
+
       // check deleted parameter in URL to show success message
       const urlParams = new URLSearchParams(window.location.search);
       const processed = urlParams.get("processed") === "true";

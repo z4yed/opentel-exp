@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const { upload } = require("../controllers/mediaController");
 
 const MediaSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: false,
+    trim: true,
+  },
   filename: String,
   filepath: String,
   mimetype: String,
@@ -13,10 +18,12 @@ const MediaSchema = new mongoose.Schema({
   subtitleStatus: String,
   subtitleLanguageCode: String,
   subtitleUrl: String,
+  category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+  published: { type: Boolean, default: false },
   uploadedBy: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the User model
-    ref: "User", // Name of the User model
-    required: true, // Make this field mandatory
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
   uploadedAt: {
     type: Date,

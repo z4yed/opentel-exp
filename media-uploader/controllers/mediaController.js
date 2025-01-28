@@ -59,6 +59,7 @@ const processFile = async (req, res) => {
       const response = await s3.send(putCommand);
 
       if (response.$metadata.httpStatusCode === 200) {
+        console.log("File uploaded to S3 bucket successfully");
         uploadSpan.setAttribute("uploadStatus", "success");
         uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
         uploadSpan.setAttribute("s3Key", fileUniqueName);
@@ -72,11 +73,13 @@ const processFile = async (req, res) => {
         );
 
         const media = new MediaModel({
+          title: null,
           filename: file.originalname,
           filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
           uploadedBy: req.user.id,
           filesize: file.size,
           mimetype: file.mimetype,
+          category: null,
           uploadedAt: new Date(),
         });
 
@@ -133,8 +136,6 @@ const processFile = async (req, res) => {
           subtitleStatus: responseData.subtitleGenerationStatus,
         });
       }
-
-      res.redirect("/upload?processed=true");
     } catch (error) {
       console.error(error);
       span.setStatus({
@@ -142,7 +143,6 @@ const processFile = async (req, res) => {
         message: error.message,
       });
     } finally {
-      console.log("Span end");
       span.end();
     }
   });

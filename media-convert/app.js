@@ -38,7 +38,6 @@ app.get("/", (req, res) => {
 });
 
 app.post("/convert", async (req, res) => {
-  console.log("Headers:", req.headers);
   const previousContext = JSON.parse(req.headers.contextinfo);
   const activeContext = propagation.extract(context.active(), previousContext);
 

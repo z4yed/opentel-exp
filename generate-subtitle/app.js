@@ -30,7 +30,6 @@ app.get("/", (req, res) => {
 });
 
 app.post("/generate-subtitle", async (req, res) => {
-  console.log("Headers:", req.headers);
   const previousContext = JSON.parse(req.headers.contextinfo);
   const activeContext = propagation.extract(context.active(), previousContext);
 
@@ -147,22 +146,18 @@ async function checkJobStatusEverySecond(jobName) {
             languageCode: response.TranscriptionJob.LanguageCode,
             fileUrl: `${process.env.CLOUDFRONT_URL}${relativePath}`,
           });
+        } else if (jobStatus === "FAILED") {
+          console.error(
+            "Transcription job failed:",
+            response.TranscriptionJob.FailureReason
+          );
+          clearInterval(interval);
+          resolve({
+            status: "FAILED",
+            languageCode: null,
+            fileUrl: null,
+          });
         }
-
-        // else if (jobStatus === "FAILED") {
-        //   console.error(
-        //     "Transcription job failed:",
-        //     response.TranscriptionJob.FailureReason
-        //   );
-        //   clearInterval(interval);
-        //   resolve({
-        //     status: "FAILED",
-        //     languageCode: null,
-        //     fileUrl: null,
-        //   });
-        // }
-
-        throw new Error("Transcription job failed.");
       } catch (error) {
         console.error("Error checking job status:", error);
         clearInterval(interval);

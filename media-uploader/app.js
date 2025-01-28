@@ -11,10 +11,9 @@ require("dotenv").config();
 
 const app = express();
 const PORT = 3001;
+mongoose.connect("mongodb://mongo:27017/opentel");
 
 configureOpenTelemetry("media-uploader-service");
-
-mongoose.connect("mongodb://mongo:27017/opentel");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
