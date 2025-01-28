@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <%- include('partials/navigation.ejs') %>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-6">
+      <section class="mx-auto bg-white p-8 rounded-lg shadow-lg max-w-4xl">
+            <h2 class="text-3xl font-extrabold mb-6 text-center text-blue-600">
+                Frequently Asked Questions (FAQ)
+            </h2>
+
+            <!-- FAQ Section -->
+            <div class="space-y-4">
+                <!-- Question 1 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    What is OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    OpenTelemetry is an open-source observability framework for cloud-native software. It provides APIs, libraries, and tools to collect and export telemetry data such as traces, metrics, and logs to help monitor and debug applications.
+                </p>
+                </details>
+
+                <!-- Question 2 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    What are the main components of OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    OpenTelemetry consists of three main components: <strong>Traces</strong> (representing the lifecycle of a single request), <strong>Metrics</strong> (measuring system performance), and <strong>Logs</strong> (capturing discrete events during application runtime).
+                </p>
+                </details>
+
+                <!-- Question 3 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    How do traces, metrics, and logs differ in OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    - <strong>Traces</strong> capture the lifecycle of requests and interactions between services.
+                    <br />
+                    - <strong>Metrics</strong> provide numerical data about the performance of your system, like CPU usage or request counts.
+                    <br />
+                    - <strong>Logs</strong> record discrete events and messages that occur during application runtime.
+                </p>
+                </details>
+
+                <!-- Question 4 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    How can I use OpenTelemetry to monitor microservices?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    OpenTelemetry is perfect for monitoring microservices. By instrumenting each service, you can collect telemetry data such as traces, metrics, and logs. Export this data to platforms like Jaeger, Prometheus, or Datadog for a unified view of your system’s health and interactions.
+                </p>
+                </details>
+
+                <!-- Question 5 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    What are spans in OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    Spans represent a single unit of work in OpenTelemetry traces. Each span contains metadata, start and end timestamps, and attributes, which help track individual operations within a distributed request.
+                </p>
+                </details>
+
+                <!-- Question 6 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    Can I integrate OpenTelemetry with Jaeger or Prometheus?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    Yes! OpenTelemetry provides exporters for Jaeger and Prometheus, allowing you to send telemetry data directly to these platforms for visualization and analysis.
+                </p>
+                </details>
+
+                <!-- Question 7 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    Does OpenTelemetry support auto-instrumentation?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    Yes, OpenTelemetry supports auto-instrumentation for popular frameworks and libraries in many programming languages. This helps developers easily collect telemetry data without writing custom instrumentation code.
+                </p>
+                </details>
+
+                <!-- Question 8 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    How secure is OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    OpenTelemetry is designed to be secure. It doesn’t process sensitive data by default and provides features to redact sensitive information from telemetry data. However, you should carefully review what data is being collected and exported.
+                </p>
+                </details>
+
+                <!-- Question 9 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    What is the role of context propagation in OpenTelemetry?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    Context propagation ensures that trace information flows seamlessly between services in a distributed system. This allows OpenTelemetry to link spans together and create a complete trace of a request across different services.
+                </p>
+                </details>
+
+                <!-- Question 10 -->
+                <details class="bg-gray-50 border border-gray-200 rounded-lg shadow p-4">
+                <summary class="cursor-pointer text-xl font-bold text-blue-500">
+                    Is OpenTelemetry a replacement for tools like Datadog or Splunk?
+                </summary>
+                <p class="mt-2 text-gray-700">
+                    No, OpenTelemetry is not a replacement but a complementary tool. It focuses on collecting and exporting telemetry data, while tools like Datadog, Splunk, and Prometheus provide platforms for visualizing, analyzing, and managing the data collected by OpenTelemetry.
+                </p>
+                </details>
+            </div>
+            </section>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
+  </body>
+</html>

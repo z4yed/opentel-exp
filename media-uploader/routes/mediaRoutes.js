@@ -37,6 +37,10 @@ const authenticateToken = (req, res, next) => {
 
 router.get("/", mediaController.renderIndex);
 
+router.get("/faq", (req, res) => {
+  res.render("faq", { title: "FAQ - Media Processor" });
+});
+
 router.get("/upload", authenticateToken, mediaController.renderUploader);
 
 router.post(

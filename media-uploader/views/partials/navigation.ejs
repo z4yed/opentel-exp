@@ -15,6 +15,8 @@
           <% } %>
         </li>
         <li><a href="/upload" class="hover:underline">Upload Media</a></li>
+        <li><a href="/faq" class="hover:underline">FAQ</a></li>
+        <% if (user) { %>
         <li>
           <a
             href="http://localhost:16686"
@@ -23,7 +25,6 @@
             >Jaeger Tracer</a
           >
         </li>
-        <% if (user) { %>
         <li><a href="/auth/logout" class="hover:underline">Logout</a></li>
         <% } else { %>
         <li><a href="/auth/login" class="hover:underline">Login</a></li>
