@@ -2,15 +2,12 @@ const MediaModel = require("../models/mediaModel");
 const CategoryModel = require("../models/Category");
 
 const renderIndex = async (req, res) => {
-  // http://localhost:3001/?category=Education
   const categoryName = req.query.category;
   let filteredCategory = null;
 
   if (categoryName) {
     filteredCategory = await CategoryModel.findOne({ name: categoryName });
   }
-
-  console.log("filteredCategory", filteredCategory);
 
   try {
     const categories = await CategoryModel.find();
@@ -24,7 +21,8 @@ const renderIndex = async (req, res) => {
         published: true,
       })
         .populate("category")
-        .populate("uploadedBy");
+        .populate("uploadedBy")
+        .sort({ uploadedAt: -1 });
 
       if (media.length > 0) {
         if (filteredCategory && category.name === filteredCategory.name) {
@@ -33,9 +31,6 @@ const renderIndex = async (req, res) => {
         categorizedMedia[category.name] = media;
       }
     }
-
-    console.log("categorizedMedia", categorizedMedia);
-    console.log("filteredMedia", filteredMedia);
 
     res.render("index", {
       title: "Media Suite - Home",

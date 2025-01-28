@@ -36,7 +36,6 @@ const renderUploader = async (req, res) => {
 
 const processFile = async (req, res) => {
   const contextInfo = {};
-
   return mediaUploadTracer.startActiveSpan("process-file", async (span) => {
     propagation.inject(context.active(), contextInfo);
 
@@ -65,7 +64,7 @@ const processFile = async (req, res) => {
       const response = await s3.send(putCommand);
 
       if (response.$metadata.httpStatusCode === 200) {
-        console.log("Uploading to s3: Success");
+        console.log("Uploading to s3: SUCCESS");
         uploadSpan.setAttribute("uploadStatus", "success");
         uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
         uploadSpan.setAttribute("s3Key", fileUniqueName);

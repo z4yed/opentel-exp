@@ -14,11 +14,16 @@
         <%= media.title %>
         </h3>
         <p class="text-sm text-gray-600 mb-4">
-        Uploaded by <%= media.uploadedBy.username %> on
+        Uploaded by @<%= media.uploadedBy.username %> on
         <%= new Date(media.uploadedAt).toLocaleDateString() %>
         </p>
         <div class="flex justify-between items-center text-sm text-gray-500">
-        <span>Uncategorized</span>
+
+        <span>
+            <i class="fas fa-folder"></i>
+            <%= media.category?.name || "Uncategorized" %>
+        </span>
+
         <% if (media.published) { %>
             <span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg">
             Published
