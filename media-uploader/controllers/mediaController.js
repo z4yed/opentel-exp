@@ -163,7 +163,10 @@ const getMediaPublicDetails = async (req, res) => {
   const relatedMedia = await MediaModel.find({
     category: media.category,
     _id: { $ne: media._id },
-  }).populate("category");
+  })
+    .populate("category")
+    .populate("uploadedBy")
+    .limit(5);
 
   if (!media) {
     return res.redirect("/");

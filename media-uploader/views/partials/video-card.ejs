@@ -1,12 +1,13 @@
 <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-2 overflow-hidden">
     <!-- Thumbnail -->
-    <a href="/media/<%= media._id %>/details">
+    <a href="/media/<%= media._id %>">
         <img
         src="<%= media.thumbnailUrl %>"
         alt="<%= media.filename %>"
         class="w-full h-48 object-cover transition-transform hover:scale-105 cursor-pointer"
         />
     </a>
+
     <!-- Card Content -->
     <div class="p-4">
         <h3 class="text-lg font-semibold text-gray-800 truncate">
