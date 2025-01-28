@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <%- include('partials/navigation.ejs') %>
+
+    <main class="flex-grow container mx-auto w-4/5 p-6">
+      <section class="mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">
+          Media Details
+        </h2>
+
+        <!-- Media Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-4">File Name</h3>
+            <p><%= media.filename %></p>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4">File Size</h3>
+            <p><%= media.size %> bytes</p>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4">File Type</h3>
+            <p><%= media.mimetype %></p>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Uploaded At</h3>
+            <p><%= media.uploadedAt %></p>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
+            Video Player
+        </h2>
+            <video
+                id="videoPlayer"
+                class="video-js vjs-default-skin vjs-big-play-centered mx-auto"
+                controls
+                preload="auto"
+                data-setup='{}'
+                width="640"
+                height="360"
+            >
+                <track kind="captions" src="<%= media.subtitleUrl %>" srclang="<%= media.subtitleLanguageCode %> label="English" default>
+            </video>
+      </section>
+
+      <!-- Show related video files -->
+        <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold mb-8 text-center text-blue-600">
+                Related Videos
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% relatedMedia.forEach((media) => { %>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg text-center shadow hover:shadow-lg transition transform hover:-translate-y-1 p-6">
+                    <div class="mb-4">
+                    <img
+                        src="<%= media.thumbnailUrl %>"
+                        alt="Thumbnail for <%= media.filename %>"
+                        class="w-full h-40 object-cover rounded-lg"
+                    />
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800 truncate">
+                    <%= media.filename %>
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                    Uploaded at <%= new Date(media.uploadedAt).toLocaleDateString() %>
+                    </p>
+                    <a
+                    href="/media/<%= media._id %>/details"
+                    class="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full text-center font-semibold"
+                    >
+                    View Details
+                    </a>
+                </div>
+                <% }) %>
+            </div>
+            </section>
+    </main>
+
+    <%- include('partials/footer.ejs') %>
+    <script>
+        const player = videojs("videoPlayer", {
+            controls: true,
+            autoplay: false,
+            preload: "auto",
+            textTrackSettings: false,
+            sources: [{
+                src: "<%= media.streamingUrl %>",
+                type: 'application/x-mpegURL'
+            }],
+            poster: "<%= media.thumbnailUrl %>",
+        });
+
+        console.log("Video.js player initialized:", player);
+    </script>
+  </body>
+</html>

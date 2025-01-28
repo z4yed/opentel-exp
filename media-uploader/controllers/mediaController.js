@@ -22,10 +22,18 @@ const renderIndex = (req, res) => {
   });
 };
 
-const renderUploader = (req, res) => {
-  res.render("uploader", {
-    title: "Media Suite - Uploader",
-  });
+const renderUploader = async (req, res) => {
+  try {
+    const mediaList = await MediaModel.find({ uploadedBy: req.user.id });
+
+    res.render("uploader", {
+      title: "Media Suite - Uploader",
+      mediaList,
+    });
+  } catch (error) {
+    console.error("Error fetching media list:", error.message);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 const processFile = async (req, res) => {
@@ -56,6 +64,10 @@ const processFile = async (req, res) => {
         const media = new MediaModel({
           filename: file.originalname,
           filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
+          uploadedBy: req.user.id,
+          filesize: file.size,
+          mimetype: file.mimetype,
+          uploadedAt: new Date(),
         });
 
         await media.save();
@@ -131,9 +143,54 @@ const processFile = async (req, res) => {
   });
 };
 
+const getMedia = async (req, res) => {
+  const { id } = req.params;
+  const media = await MediaModel.findById(id);
+
+  // if media is not found or not uploaded by the user
+  if (!media || media.uploadedBy.toString() !== req.user.id) {
+    return res.redirect(
+      "/upload?error=" + encodeURIComponent("Media not found")
+    );
+  }
+
+  const relatedMedia = await MediaModel.find({
+    uploadedBy: media.uploadedBy,
+    _id: { $ne: media._id },
+  });
+
+  res.render("mediaDetails", {
+    title: "Media Suite - Media Details",
+    media,
+    relatedMedia,
+  });
+};
+
+const deleteMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const media = await MediaModel.findById(id);
+
+    // if media is not found or not uploaded by the user
+    if (!media || media.uploadedBy.toString() !== req.user.id) {
+      return res.redirect(
+        "/upload?error=" + encodeURIComponent("Media not found")
+      );
+    }
+
+    await MediaModel.findByIdAndDelete(id);
+    res.redirect("/upload?deleted=true");
+  } catch (error) {
+    console.error("Error deleting media:", error.message);
+    res.status(500).redirect("/upload?deleted=false");
+  }
+};
+
 module.exports = {
   renderIndex,
   renderUploader,
   processFile,
+  deleteMedia,
+  getMedia,
   upload,
 };

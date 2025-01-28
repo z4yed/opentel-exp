@@ -6,6 +6,7 @@
 
     <!-- Main Content -->
     <main class="flex-grow container mx-auto p-6">
+      <!-- Upload Section -->
       <section class="mx-auto bg-white p-8 rounded-lg shadow-lg">
         <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
           Upload Your Video File to Transcode & Transcribe
@@ -13,6 +14,69 @@
 
         <!-- FilePond Input -->
         <input type="file" class="filepond mt-6" name="file" multiple />
+      </section>
+
+      <!-- Media List Section -->
+      <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-bold mb-4 text-blue-600">Uploaded Media</h2>
+
+        <!-- Media Table -->
+        <div class="overflow-x-auto">
+          <table class="table-auto w-full border-collapse border border-gray-300">
+            <thead>
+              <tr class="bg-blue-100">
+                <th class="border border-gray-300 px-4 py-2">File Name</th>
+                <th class="border border-gray-300 px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (mediaList && mediaList.length > 0) { %>
+                <% mediaList.forEach((media) => { %>
+                  <tr>
+                    <!-- File Name -->
+                    <td class="border border-gray-300 px-4 py-2">
+                      <%= media.filename %>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="border border-gray-300 px-4 py-2 space-x-2">
+                      <!-- Navigate to Details Button -->
+                      <a
+                        href="/media/<%= media._id %>/details"
+                        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+                      >
+                        Details
+                      </a>
+
+                      <!-- Delete Button -->
+                      <form
+                        action="/media/<%= media._id %>/delete"
+                        method="POST"
+                        class="inline-block"
+                      >
+                        <button
+                          type="submit"
+                          class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td
+                    colspan="2"
+                    class="border border-gray-300 px-4 py-2 text-center italic"
+                  >
+                    No media uploaded yet.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
 
@@ -32,6 +96,49 @@
           },
         },
       });
+
+
+      // check deleted parameter in URL to show success message
+      const urlParams = new URLSearchParams(window.location.search);
+      const deleted = urlParams.get("deleted") === "true";
+      const notDeleted = urlParams.get("deleted") === "false";
+      const errorValue = urlParams.get("error") || null;
+
+      if (deleted) {
+        Toastify({
+          text: "Media deleted successfully",
+          duration: 3000, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#4CAF50", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+        }).showToast();
+      }
+
+      if (notDeleted) {
+        Toastify({
+          text: "Failed to delete media",
+          duration: 3000, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#ff4d4d", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+        }).showToast();
+      }
+
+      if (errorValue) {
+        Toastify({
+          text: error,
+          duration: 3000, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#ff4d4d", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+        }).showToast();
+      }
     </script>
   </body>
 </html>

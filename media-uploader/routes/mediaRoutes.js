@@ -41,8 +41,17 @@ router.get("/upload", authenticateToken, mediaController.renderUploader);
 
 router.post(
   "/upload",
+  authenticateToken,
   mediaController.upload.single("file"),
   mediaController.processFile
+);
+
+router.get("/media/:id/details", authenticateToken, mediaController.getMedia);
+
+router.post(
+  "/media/:id/delete/",
+  authenticateToken,
+  mediaController.deleteMedia
 );
 
 module.exports = router;

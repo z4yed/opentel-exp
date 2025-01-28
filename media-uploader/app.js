@@ -32,20 +32,19 @@ app.use((req, res, next) => {
 
   if (!token) {
     res.locals.user = null; // No user info if token is missing
-    return next();
+    return next(); // Allow non-protected routes to proceed
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET); // Verify the token
-    req.user = decoded; // Attach decoded user info to the request
+    req.user = decoded; // Attach user info to the request object
     res.locals.user = decoded; // Ensure user info is available in views
-    next(); // Proceed to the next middleware or route
   } catch (error) {
-    res.locals.user = null; // Set user to null if token is invalid
+    res.locals.user = null; // Clear user info if token is invalid
     console.error("Error verifying token:", error.message);
+  } finally {
+    next(); // Proceed to the next middleware or route
   }
-
-  next(); // Proceed to the next middleware or route
 });
 
 app.use("/", mediaRoutes);
