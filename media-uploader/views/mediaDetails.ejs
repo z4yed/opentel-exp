@@ -50,6 +50,7 @@
       </section>
 
       <!-- Show related video files -->
+    <% if (relatedMedia.length > 0) { %>
         <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
             <h2 class="text-3xl font-bold mb-8 text-center text-blue-600">
                 Related Videos
@@ -81,6 +82,7 @@
                 <% }) %>
             </div>
             </section>
+        <% } %>
     </main>
 
     <%- include('partials/footer.ejs') %>
