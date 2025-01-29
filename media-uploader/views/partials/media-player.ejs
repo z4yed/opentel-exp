@@ -1,7 +1,4 @@
 <section class="mx-auto bg-white p-8 mt-6 rounded-lg shadow-lg">
-  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">
-    Video Player
-  </h2>
   <video
     id="videoPlayer"
     class="video-js vjs-default-skin vjs-big-play-centered mx-auto"
@@ -17,7 +14,7 @@
         kind="captions"
         src="<%= media.subtitleUrl %>"
         srclang="<%= media.subtitleLanguageCode %>"
-        label="English"
+        label="<%= media.subtitleLanguageCode %>"
         default
       />
     <% } %>
@@ -40,4 +37,9 @@
   });
 
   console.log("Video.js player initialized:", player);
+
+  // Add the HLS quality selector plugin
+  player.hlsQualitySelector({
+    displayCurrentQuality: true,
+  });
 </script>

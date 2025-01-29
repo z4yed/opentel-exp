@@ -36,122 +36,128 @@ const renderUploader = async (req, res) => {
 
 const processFile = async (req, res) => {
   const contextInfo = {};
-  return mediaUploadTracer.startActiveSpan("process-file", async (span) => {
-    propagation.inject(context.active(), contextInfo);
+  return mediaUploadTracer.startActiveSpan(
+    "process-file-span",
+    async (span) => {
+      propagation.inject(context.active(), contextInfo);
 
-    try {
-      span.setAttribute("file.size", req.file.size);
-      span.setAttribute("file.type", req.file.mimetype);
+      try {
+        span.setAttribute("file.size", req.file.size);
+        span.setAttribute("file.type", req.file.mimetype);
 
-      const uploadSpan = mediaUploadTracer.startSpan(
-        "upload-to-s3",
-        { attributes: {} },
-        context.active()
-      );
-
-      const file = req.file;
-      console.log("Uploading to s3: PROCESSING");
-      const s3 = new S3Client({ region: process.env.AWS_REGION });
-      const fileUniqueName = Math.random().toString(36).slice(2, 18) + ".mp4";
-      const input = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: fileUniqueName,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      };
-
-      const putCommand = new PutObjectCommand(input);
-      const response = await s3.send(putCommand);
-
-      if (response.$metadata.httpStatusCode === 200) {
-        console.log("Uploading to s3: SUCCESS");
-        uploadSpan.setAttribute("uploadStatus", "success");
-        uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
-        uploadSpan.setAttribute("s3Key", fileUniqueName);
-        uploadSpan.end();
-
-        // create a new media record span
-        const mediaSpan = mediaUploadTracer.startSpan(
-          "create-media-record",
+        const uploadSpan = mediaUploadTracer.startSpan(
+          "upload-to-s3-span",
           { attributes: {} },
           context.active()
         );
 
-        const media = new MediaModel({
-          title: null,
-          filename: file.originalname,
-          filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
-          uploadedBy: req.user.id,
-          filesize: file.size,
-          mimetype: file.mimetype,
-          category: null,
-          uploadedAt: new Date(),
-        });
+        const file = req.file;
+        console.log("Uploading to s3: PROCESSING");
+        const s3 = new S3Client({ region: process.env.AWS_REGION });
+        const fileUniqueName = Math.random().toString(36).slice(2, 18) + ".mp4";
+        const input = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: fileUniqueName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        };
 
-        await media.save();
-        mediaSpan.setAttribute("record-id", media._id);
-        mediaSpan.end();
+        const putCommand = new PutObjectCommand(input);
+        const response = await s3.send(putCommand);
 
-        // pass context to the next service
-        const videoProcessResponse = await axios.post(
-          `${MEDIA_CONVERT_SERVICE_URL}/convert`,
-          {
-            bucket: process.env.S3_BUCKET_NAME,
-            key: fileUniqueName,
-            mediaId: media._id,
-          },
-          {
-            headers: {
-              ContextInfo: JSON.stringify(contextInfo),
+        if (response.$metadata.httpStatusCode === 200) {
+          console.log("Uploading to s3: SUCCESS");
+          uploadSpan.setAttribute("uploadStatus", "success");
+          uploadSpan.setAttribute("s3Bucket", process.env.S3_BUCKET_NAME);
+          uploadSpan.setAttribute("s3Key", fileUniqueName);
+          uploadSpan.end();
+
+          // create a new media record span
+          const mediaSpan = mediaUploadTracer.startSpan(
+            "create-media-record-span",
+            { attributes: {} },
+            context.active()
+          );
+
+          const media = new MediaModel({
+            title: null,
+            filename: file.originalname,
+            filepath: `${process.env.CLOUDFRONT_URL}/${fileUniqueName}`,
+            uploadedBy: req.user.id,
+            filesize: file.size,
+            mimetype: file.mimetype,
+            category: null,
+            uploadedAt: new Date(),
+          });
+
+          await media.save();
+          mediaSpan.setAttribute("record-id", media._id);
+          mediaSpan.end();
+
+          // pass context to the next service
+          const videoProcessResponse = await axios.post(
+            `${MEDIA_CONVERT_SERVICE_URL}/convert`,
+            {
+              bucket: process.env.S3_BUCKET_NAME,
+              key: fileUniqueName,
+              mediaId: media._id,
             },
-          }
-        );
+            {
+              headers: {
+                ContextInfo: JSON.stringify(contextInfo),
+              },
+            }
+          );
 
-        const responseData = videoProcessResponse.data;
+          const responseData = videoProcessResponse.data;
 
-        console.log("=================================");
-        console.log("Final Response: ", responseData);
-        console.log("=================================");
+          console.log("=================================");
+          console.log("Final Response: ", responseData);
+          console.log("=================================");
 
-        span.setAttribute("mediaConvertJobId", responseData.mediaConvertJobId);
-        span.setAttribute(
-          "mediaConvertJobStatus",
-          responseData.mediaConvertJobStatus
-        );
-        span.setAttribute("hlsPlaylistUrl", responseData.hlsPlaylistUrl);
-        span.setAttribute("thumbnailUrl", responseData.thumbnailUrl);
-        span.setAttribute("mediaId", responseData.mediaId);
-        span.setAttribute(
-          "subtitleGenerationStatus",
-          responseData.subtitleGenerationStatus
-        );
-        span.setAttribute(
-          "subtitleLanguageCode",
-          responseData.subtitleLanguageCode
-        );
-        span.setAttribute("subtitleFileUrl", responseData.subtitleFileUrl);
+          span.setAttribute(
+            "mediaConvertJobId",
+            responseData.mediaConvertJobId
+          );
+          span.setAttribute(
+            "mediaConvertJobStatus",
+            responseData.mediaConvertJobStatus
+          );
+          span.setAttribute("hlsPlaylistUrl", responseData.hlsPlaylistUrl);
+          span.setAttribute("thumbnailUrl", responseData.thumbnailUrl);
+          span.setAttribute("mediaId", responseData.mediaId);
+          span.setAttribute(
+            "subtitleGenerationStatus",
+            responseData.subtitleGenerationStatus
+          );
+          span.setAttribute(
+            "subtitleLanguageCode",
+            responseData.subtitleLanguageCode
+          );
+          span.setAttribute("subtitleFileUrl", responseData.subtitleFileUrl);
 
-        await MediaModel.findByIdAndUpdate(media._id, {
-          mediaConvertJobId: responseData.mediaConvertJobId,
-          mediaConvertStatus: responseData.mediaConvertJobStatus,
-          streamingUrl: responseData.hlsPlaylistUrl,
-          thumbnailUrl: responseData.thumbnailUrl,
-          subtitleUrl: responseData.subtitleFileUrl,
-          subtitleLanguageCode: responseData.subtitleLanguageCode,
-          subtitleStatus: responseData.subtitleGenerationStatus,
+          await MediaModel.findByIdAndUpdate(media._id, {
+            mediaConvertJobId: responseData.mediaConvertJobId,
+            mediaConvertStatus: responseData.mediaConvertJobStatus,
+            streamingUrl: responseData.hlsPlaylistUrl,
+            thumbnailUrl: responseData.thumbnailUrl,
+            subtitleUrl: responseData.subtitleFileUrl,
+            subtitleLanguageCode: responseData.subtitleLanguageCode,
+            subtitleStatus: responseData.subtitleGenerationStatus,
+          });
+        }
+        res.status(200).send("File uploaded successfully");
+      } catch (error) {
+        console.error(error);
+        span.setStatus({
+          code: opentelemetry.SpanStatusCode.ERROR,
+          message: error.message,
         });
+      } finally {
+        span.end();
       }
-      res.status(200).send("File uploaded successfully");
-    } catch (error) {
-      console.error(error);
-      span.setStatus({
-        code: opentelemetry.SpanStatusCode.ERROR,
-        message: error.message,
-      });
-    } finally {
-      span.end();
     }
-  });
+  );
 };
 
 const getMediaPublicDetails = async (req, res) => {

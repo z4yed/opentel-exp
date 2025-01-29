@@ -42,7 +42,7 @@ app.post("/convert", async (req, res) => {
   const activeContext = propagation.extract(context.active(), previousContext);
 
   let span = mediaConvertTracer.startSpan(
-    "convertMedia",
+    "convert-media-span",
     { attributes: {} },
     activeContext
   );

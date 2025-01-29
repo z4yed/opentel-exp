@@ -1,3 +1,41 @@
 .vjs-texttrack-settings {
   display: none;
 }
+
+.toastify-loading {
+  position: relative;
+  overflow: hidden;
+  color: white !important;
+  font-weight: bold;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 8px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toastify-loading::after {
+  content: "_";
+  font-size: 20px;
+  font-weight: bold;
+  position: absolute;
+  left: 10px;
+  animation: move-underscore 1.5s linear infinite;
+}
+
+@keyframes move-underscore {
+  0% {
+    left: 10px;
+    opacity: 0.2;
+  }
+  50% {
+    left: 50%;
+    opacity: 1;
+  }
+  100% {
+    left: 90%;
+    opacity: 0.2;
+  }
+}

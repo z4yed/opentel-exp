@@ -34,7 +34,7 @@ app.post("/generate-subtitle", async (req, res) => {
   const activeContext = propagation.extract(context.active(), previousContext);
 
   let mainSpan = subtitleGeneratorTracer.startSpan(
-    "generateSubtitle",
+    "generate-subtitle-span",
     { attributes: {} },
     activeContext
   );
@@ -54,7 +54,7 @@ app.post("/generate-subtitle", async (req, res) => {
 
     // span - 2
     let callTranscribeJobSpan = subtitleGeneratorTracer.startSpan(
-      "call-transcribe",
+      "call-transcribe-span",
       { attributes: {} },
       activeContext
     );
@@ -76,7 +76,7 @@ app.post("/generate-subtitle", async (req, res) => {
 
     // span - 3
     let checkJobStatusSpan = subtitleGeneratorTracer.startSpan(
-      "check-job-status",
+      "check-job-status-span",
       { attributes: {} },
       activeContext
     );

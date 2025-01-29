@@ -25,7 +25,7 @@
                   kind="captions"
                   src="<%= media.subtitleUrl %>"
                   srclang="<%= media.subtitleLanguageCode %>"
-                  label="English"
+                  label="<%= media.subtitleLanguageCode %>"
                   default
                 />
               <% } %>
@@ -123,9 +123,11 @@
         fluid: true,
         preload: "auto",
         textTrackSettings: false,
+      }, () => {
+        player.hlsQualitySelector({
+          displayCurrentQuality: true,
+        });
       });
-
-      console.log("Video.js player initialized:", player);
     </script>
 
     <script>

@@ -26,6 +26,7 @@
             <thead>
               <tr class="bg-blue-100">
                 <th class="border border-gray-300 px-4 py-2">File Name</th>
+                <th class="border border-gray-300 px-4 py-2">Title</th>
                 <th class="border border-gray-300 px-4 py-2">Processed at</th>
                 <th class="border border-gray-300 px-4 py-2">Category</th>
                 <th class="border border-gray-300 px-4 py-2">Published?</th>
@@ -39,6 +40,11 @@
                     <!-- File Name -->
                     <td class="border border-gray-300 px-4 py-2">
                       <%= media.filename %>
+                    </td>
+
+                    <!-- Title -->
+                    <td class="border border-gray-300 px-4 py-2">
+                      <%= media.title || "Not Specified" %>
                     </td>
 
                     <!-- Processed At -->
@@ -57,7 +63,7 @@
                     </td>
 
                     <!-- Actions -->
-                    <td class="border border-gray-300 px-4 py-2 space-x-2">
+                    <td class="border border-gray-300 px-4 py-2 space-x-2 flex wrap">
                       <!-- Navigate to Details Button -->
                       <a
                         href="/media/<%= media._id %>/details"
@@ -79,7 +85,7 @@
                         action="/media/<%= media._id %>/delete"
                         method="POST"
                         class="inline-block"
-                          onsubmit="return confirm('Are you sure you want to delete this media?');"
+                        onsubmit="return confirm('Are you sure you want to delete this media?');"
                       >
                         <button
                           type="submit"
@@ -114,6 +120,8 @@
       FilePond.registerPlugin(FilePondPluginFileValidateType);
 
       const inputElement = document.querySelector('input[type="file"]');
+      let loadingToast;
+
       const pond = FilePond.create(inputElement, {
         credits: false,
         allowFileTypeValidation: true,
@@ -130,14 +138,31 @@
         },
       });
 
+      // show processing toastify message when file upload starts
+      pond.on("processfilestart", (file) => {
+        loadingToast = Toastify({
+          text: "Processing. Please wait. ⏳",
+          duration: -1, // Duration in milliseconds
+          close: true, // Show close button
+          gravity: "top", // Position (top/bottom)
+          position: "right", // Position (left/right/center)
+          backgroundColor: "#4CAF50", // Custom background color
+          stopOnFocus: true, // Stop timeout on focus
+          className: "toastify-loading",
+        }).showToast();
+      });
+
       // on file upload complete, reload the page
       pond.on("processfile", (error, file) => {
         if (error) {
           console.error("File processing failed", error);
           return;
         }
+
+        loadingToast?.hideToast();
+
         Toastify({
-          text: "Media processed successfully",
+          text: "Media processed. ✅",
           duration: 3000, // Duration in milliseconds
           close: true, // Show close button
           gravity: "top", // Position (top/bottom)
@@ -148,7 +173,7 @@
 
         // reload the page after 3 seconds
         setTimeout(() => {
-          window.location.reload();
+          window.location.replace("/media/upload");
         }, 3000);
       });
 
